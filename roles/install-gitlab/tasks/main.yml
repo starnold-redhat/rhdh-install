@@ -1,0 +1,97 @@
+---
+# tasks file for rhsso
+
+- name: Create a gitlab namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: gitlab
+
+- name: Create a gitlab  service account 
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: ServiceAccount
+      metadata:
+        name: gitlab
+        namespace: gitlab
+      labels:
+        app: gitlab
+
+- name: give gitlab service account admin privs
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: RoleBinding
+      apiVersion: rbac.authorization.k8s.io/v1
+      metadata:
+        name: gitlab-admin
+        namespace: gitlab
+      subjects:
+        - kind: ServiceAccount
+          name: gitlab
+          namespace: gitlab
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: admin
+
+- name: add privileged scc to gitlab user
+  ansible.builtin.shell:
+    cmd: oc adm policy add-scc-to-user privileged system:serviceaccount:gitlab:gitlab   
+        
+- name: Install gitlab-postgresql
+  kubernetes.core.k8s:
+    state: present
+    src: gitlab_secret.yaml
+
+- name: Install gitlab-postgresql
+  kubernetes.core.k8s:
+    state: present
+    src: gitlab_postgresql.yaml
+
+
+- name: Wait for postgressql to install
+  kubernetes.core.k8s_info:
+    namespace: gitlab
+    kind: pod
+    label_selectors:
+      - name = gitlab-postgresql
+    wait: true
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: true
+
+- name: Install gitlab-redis
+  kubernetes.core.k8s:
+    state: present
+    src: gitlab_redis.yaml
+
+- name: Install Gitlab
+  kubernetes.core.k8s:
+    state: present
+    resource_definition: "{{ lookup('template', 'gitlab.yaml.j2') }}"
+
+- name: Wait for gitlab to install
+  kubernetes.core.k8s_info:
+    namespace: gitlab
+    kind: pod
+    label_selectors:
+      - app = gitlab
+    wait: true
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: true
+
+
+#- name: Install techdocs runner
+#  kubernetes.core.k8s:
+#    state: present
+#    src: techdocs-runner.yaml
+

@@ -1,0 +1,44 @@
+apiVersion: keycloak.org/v1alpha1
+kind: Keycloak
+metadata:
+  labels:
+    app: sso
+  name: rhsso-instance
+  namespace: rhsso
+  
+spec:
+  externalAccess:
+    enabled: true
+  instances: 1
+status:
+  credentialSecret: credential-rhsso-instance
+  externalURL: 'https://keycloak-rhsso.$(OCP_BASE)'
+  internalURL: 'https://keycloak.rhsso.svc:8443'
+  message: ''
+  phase: reconciling
+  ready: true
+  secondaryResources:
+    ServiceMonitor:
+      - keycloak-service-monitor
+    Deployment:
+      - keycloak-postgresql
+    PrometheusRule:
+      - keycloak
+    Route:
+      - keycloak
+      - keycloak-metrics-rewrite
+    PersistentVolumeClaim:
+      - keycloak-postgresql-claim
+    Secret:
+      - credential-rhsso-instance
+      - keycloak-db-secret
+    Service:
+      - keycloak-postgresql
+      - keycloak
+      - keycloak-discovery
+      - keycloak-monitoring
+    StatefulSet:
+      - keycloak
+    ConfigMap:
+      - keycloak-probes
+  version: main

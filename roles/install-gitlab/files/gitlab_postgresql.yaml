@@ -1,0 +1,129 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-postgresql
+  namespace: gitlab
+  labels:
+    app: gitlab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: gp3-csi
+  resources:
+    requests:
+      storage: 10Gi
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: gitlab-postgresql
+  namespace: gitlab
+  labels:
+    name: gitlab-postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: gitlab-postgresql
+  template:
+    metadata:
+      labels:
+        name: gitlab-postgresql
+    spec:
+      restartPolicy: Always
+      serviceAccountName: gitlab
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
+      securityContext: {}
+      containers:
+        - resources:
+            requests:
+              cpu: '2'
+              memory: 4Gi
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - '-h'
+                - localhost
+                - '-U'
+                - postgres
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          name: postgresql
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - '-h'
+                - localhost
+                - '-U'
+                - postgres
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: DB_USER
+              value: gitlab
+            - name: DB_PASS
+              value: passw0rd
+            - name: DB_NAME
+              value: gitlab_production
+            - name: DB_EXTENSION
+              value: 'pg_trgm,btree_gist'
+          securityContext:
+            privileged: true
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql
+          terminationMessagePolicy: File
+          image: 'quay.io/redhat-gpte/gitlab-postgresql:14'
+      serviceAccount: gitlab
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: gitlab-postgresql
+      dnsPolicy: ClusterFirst
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: gitlab-postgresql
+  namespace: gitlab
+  labels:
+    name: gitlab-postgresql
+    rht-gitops.com/openshift-gitops: gitlab
+spec:
+  ipFamilies:
+    - IPv4
+  ports:
+    - name: postgres
+      protocol: TCP
+      port: 5432
+      targetPort: postgres
+  internalTrafficPolicy: Cluster
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    name: gitlab-postgresql
+

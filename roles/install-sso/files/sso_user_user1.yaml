@@ -1,0 +1,22 @@
+apiVersion: keycloak.org/v1alpha1
+kind: KeycloakUser
+metadata:
+  name: user1
+  namespace: rhsso
+  finalizers:
+    - user.cleanup
+  labels:
+    app: openshift
+spec:
+  realmSelector:
+    matchLabels:
+      app: openshift
+  user:
+    credentials:
+      - type: password
+        value: user1
+    email: user1@demo.redhat.com
+    emailVerified: true
+    enabled: true
+    username: user1
+

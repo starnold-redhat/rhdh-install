@@ -1,0 +1,323 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: app-config-rhdh
+  namespace: demo-project
+  uid: 5c65588a-be90-4a38-9aeb-f9933de5fe0e
+  resourceVersion: '1651667'
+  creationTimestamp: '2024-11-11T12:54:49Z'
+  labels:
+    rhdh.redhat.com/ext-config-sync: 'true'
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","data":{"app-config-rhdh.yaml":"signInPage: oidc   \napp:\n  title: My Red Hat Developer Hub Instance\n  baseUrl: https://backstage-developer-hub-demo-project.${basedomain} # be aware: project 'demo-project' is part of the url. Change it if you use another project\nbackend:\n  reading:\n    allow:\n      - host: raw.githubusercontent.com\n      - host: github.com\n  auth:\n    keys:\n      - secret: ${BACKEND_SECRET}\n  baseUrl: https://backstage-developer-hub-demo-project.${basedomain} # be aware: project 'demo-project' is part of the url. Change it if you use another project\n  cors:\n    origin: https://backstage-developer-hub-demo-project.${basedomain} # be aware: project 'demo-project' is part of the url. Change it if you use another project\nintegrations:\n  github:\n    - host: github.com\n      token: ${RHDH_GITHUB_INTEGRATION_PERSONAL_ACCESS_TOKEN}\n      apps:\n        - appId: ${RHDH_GITHUB_INTEGRATION_APP_ID}\n          clientId: ${RHDH_GITHUB_INTEGRATION_APP_CLIENT_ID}\n          clientSecret: ${RHDH_GITHUB_INTEGRATION_APP_CLIENT_SECRET}\n          webhookUrl: none\n          webhookSecret: none\n          privateKey: ${RHDH_GITHUB_INTEGRATION_APP_PRIVATE_KEY}\ncatalog:\n  processingInterval: { minutes: 1 }\n  processing:\n    cache:\n      enabled: false\n  lifecycles:\n    - production\n    - staging\n  rules:\n    - allow: [Location, Component, API, Resource, System, Domain, Group, User, Template]\n  locations: \n    - rules:\n        - allow:\n            - Group\n            - User\n            - Component\n            - Location\n            - System\n            - Resource\n            - Domain\n            - API\n            - Template\n      target: https://github.com/maarten-vandeperre/developer-hub-documentation/blob/main/configurations/catalog-entities/all.yaml\n      type: url\n  providers:\n    # aap:\n      # prod:\n        # baseUrl: https://automation-controller-aap.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com/\n        # authorization: 'Bearer MMGqXFu1I71HWfiAUqLrYEuA1VMu1R' #automation-controller-secret-key secret-key\n        # owner: 'maarten-vandeperre-org' # an owner defined within catalog entities\n        # system: 'maartens-wonderful-system' # an owner defined within catalog entities\n        # schedule: # optional; same options as in TaskScheduleDefinition\n          # # supports cron, ISO duration, \"human duration\" as used in code\n          # frequency: { minutes: 1 }\n          # # supports ISO duration, \"human duration\" as used in code\n          # timeout: { minutes: 1 }\n    keycloakOrg:\n      default:\n        baseUrl: https://demo-keycloak-instance.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com\n        loginRealm: rhdh\n        realm: rhdh\n        clientId: rhdh-client \n        clientSecret: 7iKyQUwyApIojzOlSj82vUWIhejv41E5 # ${RHDH_KEYCLOAK_RHDH_CLIENT_SECRET}\n        # highlight-add-start\n        schedule: # optional; same options as in TaskScheduleDefinition\n          # supports cron, ISO duration, \"human duration\" as used in code\n          frequency: { minutes: 1 }\n          # supports ISO duration, \"human duration\" as used in code\n          timeout: { minutes: 3 }\n          initialDelay: { seconds: 15 }\n          # highlight-add-end\n    github:\n      # the provider ID can be any camelCase string\n      providerId:\n        organization: 'maarten-vandeperre' # string\n        catalogPath: '/catalog-info.yaml' # string\n        filters:\n          branch: 'master' # string\n          repository: '.*' # Regex\n        schedule: # optional; same options as in TaskScheduleDefinition\n          # supports cron, ISO duration, \"human duration\" as used in code\n          frequency: { minutes: 1 }\n          # supports ISO duration, \"human duration\" as used in code\n          timeout: { minutes: 1 }\n          initialDelay: { seconds: 15 }\n    ocm:\n      default:\n        kubernetesPluginRef: local-cluster\n        name: multiclusterhub\n        owner: group:rhdh\n        schedule:\n          frequency:\n            seconds: 10\n          timeout:\n            seconds: 60\n    threeScaleApiEntity:\n      default:\n        baseUrl: https://demo-organization-maarten-admin.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com\n        accessToken: ${RHDH_3SCALE_RHDH_CLIENT_SECRET}\n        schedule: # optional; same options as in TaskScheduleDefinition\n          # supports cron, ISO duration, \"human duration\" as used in code\n          frequency: { minutes: 1 }\n          # supports ISO duration, \"human duration\" as used in code\n          timeout: { minutes: 3 }\n    awsS3: # minio                             #minio-techdocs-enabled\n      default: # identifies your dataset / provider independent of config changes                             #minio-techdocs-enabled\n        bucketName: minio-tech-docs                             #minio-techdocs-enabled\n        #prefix: prefix/ # optional                             #minio-techdocs-enabled\n        region: eu-west-3 # optional, uses the default region otherwise                             #minio-techdocs-enabled\n        schedule: # same options as in TaskScheduleDefinition                             #minio-techdocs-enabled\n          # supports cron, ISO duration, \"human duration\" as used in code                             #minio-techdocs-enabled\n          #frequency: { minutes: 30 }                             #minio-techdocs-enabled\n          frequency: { minutes: 1 }                             #minio-techdocs-enabled\n          # supports ISO duration, \"human duration\" as used in code                             #minio-techdocs-enabled\n          timeout: { minutes: 3 }                             #minio-techdocs-enabled\n          initialDelay: { seconds: 15 }                             #minio-techdocs-enabled\n    #if-aws-techdocs-disabled awsS3:\n      #if-aws-techdocs-disabled default: # identifies your dataset / provider independent of config changes\n        #if-aws-techdocs-disabled bucketName: redhat-demo-dev-hub-1\n        #if-aws-techdocs-disabled #prefix: prefix/ # optional\n        #if-aws-techdocs-disabled region: eu-west-3 # optional, uses the default region otherwise\n        #if-aws-techdocs-disabled schedule: # same options as in TaskScheduleDefinition\n          #if-aws-techdocs-disabled # supports cron, ISO duration, \"human duration\" as used in code\n          #if-aws-techdocs-disabled #frequency: { minutes: 30 }\n          #if-aws-techdocs-disabled frequency: { minutes: 1 }\n          #if-aws-techdocs-disabled # supports ISO duration, \"human duration\" as used in code\n          #if-aws-techdocs-disabled timeout: { minutes: 3 }\n          #if-aws-techdocs-disabled initialDelay: { seconds: 15 }\nauth:\n  environment: default\n  session:\n    secret: ${BACKEND_SECRET}\n  providers:\n    github:\n      default:\n        clientId: ${RHDH_GITHUB_INTEGRATION_APP_CLIENT_ID}\n        clientSecret: ${RHDH_GITHUB_INTEGRATION_APP_CLIENT_SECRET}\n    oidc:\n      default:\n#        metadataUrl: \u003ckeycloak_base_url\u003e/realms/rhdh/.well-known/openid-configuration # ${AUTH_OIDC_METADATA_URL}\n        metadataUrl: https://demo-keycloak-instance.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com/realms/rhdh/.well-known/openid-configuration\n        clientId: rhdh-client\n        clientSecret: 7iKyQUwyApIojzOlSj82vUWIhejv41E5 # ${RHDH_KEYCLOAK_RHDH_CLIENT_SECRET}\n        prompt: auto# recommended to use auto\n        ## uncomment for additional configuration options\n        # callbackUrl: ${AUTH_OIDC_CALLBACK_URL}\n        # tokenEndpointAuthMethod: ${AUTH_OIDC_TOKEN_ENDPOINT_METHOD}\n        # tokenSignedResponseAlg: ${AUTH_OIDC_SIGNED_RESPONSE_ALG}\n        # scope: ${AUTH_OIDC_SCOPE}\n        ## Auth provider will try each resolver until it succeeds. Uncomment the resolvers you want to use to override the default resolver: `emailLocalPartMatchingUserEntityName`\n        signIn:\n          resolvers:\n            - resolver: preferredUsernameMatchingUserEntityName\n        #    - resolver: emailMatchingUserEntityProfileEmail\n        #    - resolver: emailLocalPartMatchingUserEntityName\nargocd:\n  appLocatorMethods:\n    - type: 'config'\n      instances:\n        - name: argoInstance1\n          url: https://argocd-instance-server-demo-project.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com\n          username: admin \n          password: ${RHDH_ARGOCD_ADMIN_PWD}\njenkins:\n  instances:\n    - name: default-jenkins\n      baseUrl: https://jenkins-demo-project.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com/\n      username: admin\n      apiKey: rhdh\nkubernetes:\n  clusterLocatorMethods:\n    - clusters:\n        - authProvider: serviceAccount\n          name: local-cluster\n          serviceAccountToken: ${RHDH_TEKTON_SERVICE_ACCOUNT_TOKEN}\n          skipTLSVerify: true\n          url: https://api.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com:6443\n      type: config\n  customResources:\n    - apiVersion: v1beta1\n      group: tekton.dev\n      plural: pipelineruns\n    - apiVersion: v1beta1\n      group: tekton.dev\n      plural: taskruns\n    - apiVersion: v1\n      group: route.openshift.io\n      plural: routes\n  serviceLocatorMethod:\n    type: multiTenant\ndynamicPlugins:\n  frontend:\n    internal.backstage-plugin-simple-chat:\n      entityTabs:\n        # Adding a new tab\n        - path: /dynamic-plugin-1\n          title: Dynamic Plugin 1\n          mountPoint: entity.page.dynamic-plugin-1\n      appIcons:\n        - name: chatIcon\n          importName: ChatIcon\n      mountPoints:\n        - mountPoint: entity.page.ci/cards\n          importName: SimpleChatPage\n          config:\n            layout:\n              gridColumn: '1 / -1'\n        - mountPoint: entity.page.dynamic-plugin-1/cards\n          importName: SimpleChatPage\n          config:\n            layout:\n              gridColumn: '1 / -1'\n      dynamicRoutes:\n        - path: /simple-chat\n          importName: SimpleChatPage\n          menuItem:\n            text: 'Simple Chat'\n            icon: chatIcon\ntechdocs:                             #minio-techdocs-enabled\n  builder: external                             #minio-techdocs-enabled\n  generator:                             #minio-techdocs-enabled\n    runIn: local                             #minio-techdocs-enabled\n  publisher:                             #minio-techdocs-enabled\n    type: 'awsS3'                             #minio-techdocs-enabled\n    awsS3:                             #minio-techdocs-enabled\n      bucketName: minio-tech-docs                             #minio-techdocs-enabled\n      credentials:                             #minio-techdocs-enabled\n        accessKeyId: minioadmin                             #minio-techdocs-enabled\n        secretAccessKey: minioadmin                             #minio-techdocs-enabled\n      region: eu-west-3                             #minio-techdocs-enabled\n      endpoint: https://minio-api-demo-project.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com                             #minio-techdocs-enabled\n      s3ForcePathStyle: true                             #minio-techdocs-enabled\n      sse: 'AES256'                             #minio-techdocs-enabled\n  cache:                             #minio-techdocs-enabled\n    # Represents the number of milliseconds a statically built asset should                             #minio-techdocs-enabled\n    # stay cached. Cache invalidation is handled automatically by the frontend,                             #minio-techdocs-enabled\n    # which compares the build times in cached metadata vs. canonical storage,                             #minio-techdocs-enabled\n    # allowing long TTLs (e.g. 1 month/year)                             #minio-techdocs-enabled\n    # ttl: 3600000                             #minio-techdocs-enabled\n    ttl: 60000                             #minio-techdocs-enabled\n\n    # (Optional) The time (in milliseconds) that the TechDocs backend will wait                             #minio-techdocs-enabled\n    # for a cache service to respond before continuing on as though the cached                             #minio-techdocs-enabled\n    # object was not found (e.g. when the cache sercice is unavailable). The                             #minio-techdocs-enabled\n    # default value is 1000                             #minio-techdocs-enabled\n    readTimeout: 500                             #minio-techdocs-enabled\n#if-aws-techdocs-disabled techdocs:\n  #if-aws-techdocs-disabled builder: external\n  #if-aws-techdocs-disabled generator:\n    #if-aws-techdocs-disabled runIn: local\n  #if-aws-techdocs-disabled publisher:\n    #if-aws-techdocs-disabled type: 'awsS3'\n    #if-aws-techdocs-disabled awsS3:\n      #if-aws-techdocs-disabled bucketName: redhat-demo-dev-hub-1\n      #if-aws-techdocs-disabled credentials:\n        #if-aws-techdocs-disabled accessKeyId: ${RHDH_AWS_S3_TECHDOCS_ACCESS_KEY_ID}\n        #if-aws-techdocs-disabled secretAccessKey: ${RHDH_AWS_S3_TECHDOCS_SECRET_ACCESS_KEY}\n      #if-aws-techdocs-disabled region: eu-west-3\n      #if-aws-techdocs-disabled s3ForcePathStyle: true\n      #if-aws-techdocs-disabled sse: 'AES256'\n  #if-aws-techdocs-disabled cache:\n    #if-aws-techdocs-disabled # Represents the number of milliseconds a statically built asset should\n    #if-aws-techdocs-disabled # stay cached. Cache invalidation is handled automatically by the frontend,\n    #if-aws-techdocs-disabled # which compares the build times in cached metadata vs. canonical storage,\n    #if-aws-techdocs-disabled # allowing long TTLs (e.g. 1 month/year)\n    #if-aws-techdocs-disabled # ttl: 3600000\n    #if-aws-techdocs-disabled ttl: 60000\n\n    #if-aws-techdocs-disabled # (Optional) The time (in milliseconds) that the TechDocs backend will wait\n    #if-aws-techdocs-disabled # for a cache service to respond before continuing on as though the cached\n    #if-aws-techdocs-disabled # object was not found (e.g. when the cache sercice is unavailable). The\n    #if-aws-techdocs-disabled # default value is 1000\n    #if-aws-techdocs-disabled readTimeout: 500\n"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"app-config-rhdh","namespace":"demo-project"}}
+    rhdh.redhat.com/backstage-name: developer-hub
+  managedFields:
+    - manager: kubectl-client-side-apply
+      operation: Update
+      apiVersion: v1
+      time: '2024-11-11T12:54:49Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:data':
+          .: {}
+          'f:app-config-rhdh.yaml': {}
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:kubectl.kubernetes.io/last-applied-configuration': {}
+    - manager: manager
+      operation: Update
+      apiVersion: v1
+      time: '2024-11-11T13:10:01Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            'f:rhdh.redhat.com/backstage-name': {}
+          'f:labels':
+            .: {}
+            'f:rhdh.redhat.com/ext-config-sync': {}
+data:
+  app-config-rhdh.yaml: |
+    signInPage: oidc   
+    app:
+      title: My Red Hat Developer Hub Instance
+      baseUrl: https://backstage-developer-hub-demo-project.${basedomain} # be aware: project 'demo-project' is part of the url. Change it if you use another project
+    backend:
+      reading:
+        allow:
+          - host: raw.githubusercontent.com
+          - host: github.com
+      auth:
+        keys:
+          - secret: ${BACKEND_SECRET}
+      baseUrl: https://backstage-developer-hub-demo-project.${basedomain} # be aware: project 'demo-project' is part of the url. Change it if you use another project
+      cors:
+        origin: https://backstage-developer-hub-demo-project.${basedomain} # be aware: project 'demo-project' is part of the url. Change it if you use another project
+    integrations:
+      github:
+        - host: github.com
+          token: ${RHDH_GITHUB_INTEGRATION_PERSONAL_ACCESS_TOKEN}
+          apps:
+            - appId: ${RHDH_GITHUB_INTEGRATION_APP_ID}
+              clientId: ${RHDH_GITHUB_INTEGRATION_APP_CLIENT_ID}
+              clientSecret: ${RHDH_GITHUB_INTEGRATION_APP_CLIENT_SECRET}
+              webhookUrl: none
+              webhookSecret: none
+              privateKey: ${RHDH_GITHUB_INTEGRATION_APP_PRIVATE_KEY}
+    catalog:
+      processingInterval: { minutes: 1 }
+      processing:
+        cache:
+          enabled: false
+      lifecycles:
+        - production
+        - staging
+      rules:
+        - allow: [Location, Component, API, Resource, System, Domain, Group, User, Template]
+      locations: 
+        - rules:
+            - allow:
+                - Group
+                - User
+                - Component
+                - Location
+                - System
+                - Resource
+                - Domain
+                - API
+                - Template
+          target: https://github.com/maarten-vandeperre/developer-hub-documentation/blob/main/configurations/catalog-entities/all.yaml
+          type: url
+      providers:
+        # aap:
+          # prod:
+            # baseUrl: https://automation-controller-aap.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com/
+            # authorization: 'Bearer MMGqXFu1I71HWfiAUqLrYEuA1VMu1R' #automation-controller-secret-key secret-key
+            # owner: 'maarten-vandeperre-org' # an owner defined within catalog entities
+            # system: 'maartens-wonderful-system' # an owner defined within catalog entities
+            # schedule: # optional; same options as in TaskScheduleDefinition
+              # # supports cron, ISO duration, "human duration" as used in code
+              # frequency: { minutes: 1 }
+              # # supports ISO duration, "human duration" as used in code
+              # timeout: { minutes: 1 }
+        keycloakOrg:
+          default:
+            baseUrl: https://demo-keycloak-instance.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com
+            loginRealm: rhdh
+            realm: rhdh
+            clientId: rhdh-client 
+            clientSecret: 7iKyQUwyApIojzOlSj82vUWIhejv41E5 # ${RHDH_KEYCLOAK_RHDH_CLIENT_SECRET}
+            # highlight-add-start
+            schedule: # optional; same options as in TaskScheduleDefinition
+              # supports cron, ISO duration, "human duration" as used in code
+              frequency: { minutes: 1 }
+              # supports ISO duration, "human duration" as used in code
+              timeout: { minutes: 3 }
+              initialDelay: { seconds: 15 }
+              # highlight-add-end
+        github:
+          # the provider ID can be any camelCase string
+          providerId:
+            organization: 'maarten-vandeperre' # string
+            catalogPath: '/catalog-info.yaml' # string
+            filters:
+              branch: 'master' # string
+              repository: '.*' # Regex
+            schedule: # optional; same options as in TaskScheduleDefinition
+              # supports cron, ISO duration, "human duration" as used in code
+              frequency: { minutes: 1 }
+              # supports ISO duration, "human duration" as used in code
+              timeout: { minutes: 1 }
+              initialDelay: { seconds: 15 }
+        ocm:
+          default:
+            kubernetesPluginRef: local-cluster
+            name: multiclusterhub
+            owner: group:rhdh
+            schedule:
+              frequency:
+                seconds: 10
+              timeout:
+                seconds: 60
+        threeScaleApiEntity:
+          default:
+            baseUrl: https://demo-organization-maarten-admin.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com
+            accessToken: ${RHDH_3SCALE_RHDH_CLIENT_SECRET}
+            schedule: # optional; same options as in TaskScheduleDefinition
+              # supports cron, ISO duration, "human duration" as used in code
+              frequency: { minutes: 1 }
+              # supports ISO duration, "human duration" as used in code
+              timeout: { minutes: 3 }
+        awsS3: # minio                             #minio-techdocs-enabled
+          default: # identifies your dataset / provider independent of config changes                             #minio-techdocs-enabled
+            bucketName: minio-tech-docs                             #minio-techdocs-enabled
+            #prefix: prefix/ # optional                             #minio-techdocs-enabled
+            region: eu-west-3 # optional, uses the default region otherwise                             #minio-techdocs-enabled
+            schedule: # same options as in TaskScheduleDefinition                             #minio-techdocs-enabled
+              # supports cron, ISO duration, "human duration" as used in code                             #minio-techdocs-enabled
+              #frequency: { minutes: 30 }                             #minio-techdocs-enabled
+              frequency: { minutes: 1 }                             #minio-techdocs-enabled
+              # supports ISO duration, "human duration" as used in code                             #minio-techdocs-enabled
+              timeout: { minutes: 3 }                             #minio-techdocs-enabled
+              initialDelay: { seconds: 15 }                             #minio-techdocs-enabled
+        #if-aws-techdocs-disabled awsS3:
+          #if-aws-techdocs-disabled default: # identifies your dataset / provider independent of config changes
+            #if-aws-techdocs-disabled bucketName: redhat-demo-dev-hub-1
+            #if-aws-techdocs-disabled #prefix: prefix/ # optional
+            #if-aws-techdocs-disabled region: eu-west-3 # optional, uses the default region otherwise
+            #if-aws-techdocs-disabled schedule: # same options as in TaskScheduleDefinition
+              #if-aws-techdocs-disabled # supports cron, ISO duration, "human duration" as used in code
+              #if-aws-techdocs-disabled #frequency: { minutes: 30 }
+              #if-aws-techdocs-disabled frequency: { minutes: 1 }
+              #if-aws-techdocs-disabled # supports ISO duration, "human duration" as used in code
+              #if-aws-techdocs-disabled timeout: { minutes: 3 }
+              #if-aws-techdocs-disabled initialDelay: { seconds: 15 }
+    auth:
+      environment: default
+      session:
+        secret: ${BACKEND_SECRET}
+      providers:
+        github:
+          default:
+            clientId: ${RHDH_GITHUB_INTEGRATION_APP_CLIENT_ID}
+            clientSecret: ${RHDH_GITHUB_INTEGRATION_APP_CLIENT_SECRET}
+        oidc:
+          default:
+    #        metadataUrl: <keycloak_base_url>/realms/rhdh/.well-known/openid-configuration # ${AUTH_OIDC_METADATA_URL}
+            metadataUrl: https://demo-keycloak-instance.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com/realms/rhdh/.well-known/openid-configuration
+            clientId: rhdh-client
+            clientSecret: 7iKyQUwyApIojzOlSj82vUWIhejv41E5 # ${RHDH_KEYCLOAK_RHDH_CLIENT_SECRET}
+            prompt: auto# recommended to use auto
+            ## uncomment for additional configuration options
+            # callbackUrl: ${AUTH_OIDC_CALLBACK_URL}
+            # tokenEndpointAuthMethod: ${AUTH_OIDC_TOKEN_ENDPOINT_METHOD}
+            # tokenSignedResponseAlg: ${AUTH_OIDC_SIGNED_RESPONSE_ALG}
+            # scope: ${AUTH_OIDC_SCOPE}
+            ## Auth provider will try each resolver until it succeeds. Uncomment the resolvers you want to use to override the default resolver: `emailLocalPartMatchingUserEntityName`
+            signIn:
+              resolvers:
+                - resolver: preferredUsernameMatchingUserEntityName
+            #    - resolver: emailMatchingUserEntityProfileEmail
+            #    - resolver: emailLocalPartMatchingUserEntityName
+    argocd:
+      appLocatorMethods:
+        - type: 'config'
+          instances:
+            - name: argoInstance1
+              url: https://argocd-instance-server-demo-project.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com
+              username: admin 
+              password: ${RHDH_ARGOCD_ADMIN_PWD}
+    jenkins:
+      instances:
+        - name: default-jenkins
+          baseUrl: https://jenkins-demo-project.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com/
+          username: admin
+          apiKey: rhdh
+    kubernetes:
+      clusterLocatorMethods:
+        - clusters:
+            - authProvider: serviceAccount
+              name: local-cluster
+              serviceAccountToken: ${RHDH_TEKTON_SERVICE_ACCOUNT_TOKEN}
+              skipTLSVerify: true
+              url: https://api.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com:6443
+          type: config
+      customResources:
+        - apiVersion: v1beta1
+          group: tekton.dev
+          plural: pipelineruns
+        - apiVersion: v1beta1
+          group: tekton.dev
+          plural: taskruns
+        - apiVersion: v1
+          group: route.openshift.io
+          plural: routes
+      serviceLocatorMethod:
+        type: multiTenant
+    dynamicPlugins:
+      frontend:
+        internal.backstage-plugin-simple-chat:
+          entityTabs:
+            # Adding a new tab
+            - path: /dynamic-plugin-1
+              title: Dynamic Plugin 1
+              mountPoint: entity.page.dynamic-plugin-1
+          appIcons:
+            - name: chatIcon
+              importName: ChatIcon
+          mountPoints:
+            - mountPoint: entity.page.ci/cards
+              importName: SimpleChatPage
+              config:
+                layout:
+                  gridColumn: '1 / -1'
+            - mountPoint: entity.page.dynamic-plugin-1/cards
+              importName: SimpleChatPage
+              config:
+                layout:
+                  gridColumn: '1 / -1'
+          dynamicRoutes:
+            - path: /simple-chat
+              importName: SimpleChatPage
+              menuItem:
+                text: 'Simple Chat'
+                icon: chatIcon
+    techdocs:                             #minio-techdocs-enabled
+      builder: external                             #minio-techdocs-enabled
+      generator:                             #minio-techdocs-enabled
+        runIn: local                             #minio-techdocs-enabled
+      publisher:                             #minio-techdocs-enabled
+        type: 'awsS3'                             #minio-techdocs-enabled
+        awsS3:                             #minio-techdocs-enabled
+          bucketName: minio-tech-docs                             #minio-techdocs-enabled
+          credentials:                             #minio-techdocs-enabled
+            accessKeyId: minioadmin                             #minio-techdocs-enabled
+            secretAccessKey: minioadmin                             #minio-techdocs-enabled
+          region: eu-west-3                             #minio-techdocs-enabled
+          endpoint: https://minio-api-demo-project.apps.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com                             #minio-techdocs-enabled
+          s3ForcePathStyle: true                             #minio-techdocs-enabled
+          sse: 'AES256'                             #minio-techdocs-enabled
+      cache:                             #minio-techdocs-enabled
+        # Represents the number of milliseconds a statically built asset should                             #minio-techdocs-enabled
+        # stay cached. Cache invalidation is handled automatically by the frontend,                             #minio-techdocs-enabled
+        # which compares the build times in cached metadata vs. canonical storage,                             #minio-techdocs-enabled
+        # allowing long TTLs (e.g. 1 month/year)                             #minio-techdocs-enabled
+        # ttl: 3600000                             #minio-techdocs-enabled
+        ttl: 60000                             #minio-techdocs-enabled
+
+        # (Optional) The time (in milliseconds) that the TechDocs backend will wait                             #minio-techdocs-enabled
+        # for a cache service to respond before continuing on as though the cached                             #minio-techdocs-enabled
+        # object was not found (e.g. when the cache sercice is unavailable). The                             #minio-techdocs-enabled
+        # default value is 1000                             #minio-techdocs-enabled
+        readTimeout: 500                             #minio-techdocs-enabled
+    #if-aws-techdocs-disabled techdocs:
+      #if-aws-techdocs-disabled builder: external
+      #if-aws-techdocs-disabled generator:
+        #if-aws-techdocs-disabled runIn: local
+      #if-aws-techdocs-disabled publisher:
+        #if-aws-techdocs-disabled type: 'awsS3'
+        #if-aws-techdocs-disabled awsS3:
+          #if-aws-techdocs-disabled bucketName: redhat-demo-dev-hub-1
+          #if-aws-techdocs-disabled credentials:
+            #if-aws-techdocs-disabled accessKeyId: ${RHDH_AWS_S3_TECHDOCS_ACCESS_KEY_ID}
+            #if-aws-techdocs-disabled secretAccessKey: ${RHDH_AWS_S3_TECHDOCS_SECRET_ACCESS_KEY}
+          #if-aws-techdocs-disabled region: eu-west-3
+          #if-aws-techdocs-disabled s3ForcePathStyle: true
+          #if-aws-techdocs-disabled sse: 'AES256'
+      #if-aws-techdocs-disabled cache:
+        #if-aws-techdocs-disabled # Represents the number of milliseconds a statically built asset should
+        #if-aws-techdocs-disabled # stay cached. Cache invalidation is handled automatically by the frontend,
+        #if-aws-techdocs-disabled # which compares the build times in cached metadata vs. canonical storage,
+        #if-aws-techdocs-disabled # allowing long TTLs (e.g. 1 month/year)
+        #if-aws-techdocs-disabled # ttl: 3600000
+        #if-aws-techdocs-disabled ttl: 60000
+
+        #if-aws-techdocs-disabled # (Optional) The time (in milliseconds) that the TechDocs backend will wait
+        #if-aws-techdocs-disabled # for a cache service to respond before continuing on as though the cached
+        #if-aws-techdocs-disabled # object was not found (e.g. when the cache sercice is unavailable). The
+        #if-aws-techdocs-disabled # default value is 1000
+        #if-aws-techdocs-disabled readTimeout: 500
+
+

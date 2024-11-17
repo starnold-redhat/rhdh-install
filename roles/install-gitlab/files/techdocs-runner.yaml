@@ -1,0 +1,219 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: techdocs-runner-runner
+  namespace: gitlab
+  ownerReferences:
+    - apiVersion: apps.gitlab.com/v1beta2
+      kind: Runner
+      name: techdocs-runner
+      controller: true
+      blockOwnerDeletion: true
+  labels:
+    app.kubernetes.io/component: runner
+    app.kubernetes.io/instance: techdocs-runner-runner
+    app.kubernetes.io/managed-by: gitlab-runner-operator
+    app.kubernetes.io/name: techdocs-runner
+    app.kubernetes.io/part-of: runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: runner
+      app.kubernetes.io/instance: techdocs-runner-runner
+      app.kubernetes.io/managed-by: gitlab-runner-operator
+      app.kubernetes.io/name: techdocs-runner
+      app.kubernetes.io/part-of: runner
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: runner
+        app.kubernetes.io/instance: techdocs-runner-runner
+        app.kubernetes.io/managed-by: gitlab-runner-operator
+        app.kubernetes.io/name: techdocs-runner
+        app.kubernetes.io/part-of: runner
+      annotations:
+        techdocs-runner-runner-config: 0fc82f2943aaaee3018eaaa9794783ca8cbad6d38deaa612c2be8a40fc46777d
+    spec:
+      restartPolicy: Always
+      initContainers:
+        - resources: {}
+          terminationMessagePath: /dev/termination-log
+          name: configure
+          command:
+            - sh
+            - /config/configure
+          env:
+            - name: CI_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: techdocs-runner-runner-config
+                  key: ci_server_url
+            - name: CI_SERVER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-dev-runner-secret
+                  key: runner-token
+            - name: REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-dev-runner-secret
+                  key: runner-registration-token
+            - name: RUNNER_REQUEST_CONCURRENCY
+              value: '1'
+            - name: RUNNER_EXECUTOR
+              value: kubernetes
+            - name: RUNNER_OUTPUT_LIMIT
+              value: '4096'
+            - name: KUBERNETES_NAMESPACE
+              value: gitlab
+            - name: KUBERNETES_POLL_TIMEOUT
+              value: '180'
+            - name: CACHE_SHARED
+              value: 'false'
+            - name: KUBERNETES_HELPER_IMAGE
+              value: 'registry.gitlab.com/gitlab-org/ci-cd/gitlab-runner-ubi-images/gitlab-runner-helper-ocp:v16.4.2'
+            - name: REGISTER_LOCKED
+              value: 'false'
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            allowPrivilegeEscalation: false
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: runner-secrets
+              mountPath: /secrets
+            - name: scripts
+              readOnly: true
+              mountPath: /config
+            - name: init-runner-secrets
+              readOnly: true
+              mountPath: /init-secrets
+          terminationMessagePolicy: File
+          image: 'registry.gitlab.com/gitlab-org/ci-cd/gitlab-runner-ubi-images/gitlab-runner-ocp:v16.4.2'
+      serviceAccountName: gitlab-runner-sa
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - resources: {}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - /scripts/check-live
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - gitlab-runner
+                  - unregister
+                  - '--all-runners'
+          name: runner
+          command:
+            - /bin/bash
+            - /scripts/entrypoint
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - /scripts/check-live
+            initialDelaySeconds: 60
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: CI_SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: techdocs-runner-runner-config
+                  key: ci_server_url
+            - name: CI_SERVER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-dev-runner-secret
+                  key: runner-token
+            - name: REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab-dev-runner-secret
+                  key: runner-registration-token
+            - name: RUNNER_REQUEST_CONCURRENCY
+              value: '1'
+            - name: RUNNER_EXECUTOR
+              value: kubernetes
+            - name: RUNNER_OUTPUT_LIMIT
+              value: '4096'
+            - name: KUBERNETES_NAMESPACE
+              value: gitlab
+            - name: KUBERNETES_POLL_TIMEOUT
+              value: '180'
+            - name: CACHE_SHARED
+              value: 'false'
+            - name: KUBERNETES_HELPER_IMAGE
+              value: 'registry.gitlab.com/gitlab-org/ci-cd/gitlab-runner-ubi-images/gitlab-runner-helper-ocp:v16.4.2'
+            - name: REGISTER_LOCKED
+              value: 'false'
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            allowPrivilegeEscalation: false
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: runner-secrets
+              mountPath: /secrets
+            - name: scripts
+              mountPath: /scripts
+          terminationMessagePolicy: File
+          image: 'registry.gitlab.com/gitlab-org/ci-cd/gitlab-runner-ubi-images/gitlab-runner-ocp:v16.4.2'
+      serviceAccount: gitlab-runner-sa
+      volumes:
+        - name: runner-secrets
+          emptyDir:
+            medium: Memory
+        - name: init-runner-secrets
+          projected:
+            sources:
+              - secret:
+                  name: gitlab-dev-runner-secret
+                  items:
+                    - key: runner-registration-token
+                      path: runner-registration-token
+                    - key: runner-token
+                      path: runner-token
+            defaultMode: 420
+        - name: scripts
+          configMap:
+            name: techdocs-runner-runner-config
+            items:
+              - key: config.toml
+                path: config.toml
+              - key: entrypoint
+                path: entrypoint
+              - key: register-runner
+                path: register-runner
+              - key: check-live
+                path: check-live
+              - key: configure
+                path: configure
+            defaultMode: 420
+      dnsPolicy: ClusterFirst
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600

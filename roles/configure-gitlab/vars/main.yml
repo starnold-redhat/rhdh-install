@@ -1,0 +1,5 @@
+---
+# vars file for configure-gitlab
+gitlab_namespace: gitlab
+root_password: gitlab
+user_create: true

@@ -1,0 +1,186 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: backstage-developer-hub-app-config
+  namespace: backstage
+  
+data:
+  app-config.yaml: |
+    app:
+      baseUrl: https://backstage-developer-hub-backstage.{{ OCP_BASE }}
+    argocd:
+      appLocatorMethods:
+      - instances:
+        - name: main
+          password: MTUzMTc3
+          url: https://argocd-server-janus-argocd.{{ OCP_BASE }}
+          username: admin
+        type: config
+    auth:
+      environment: production
+      providers:
+        oauth2Proxy: {}
+    backend:
+      auth:
+        externalAccess:
+        - options:
+            subject: orchestrator
+            token: ${ORCHESTRATOR_TOKEN}
+          type: static
+        keys:
+        - secret: ${BACKEND_SECRET}
+      baseUrl: https://backstage-developer-hub-backstage.{{ OCP_BASE }}
+      cors:
+        credentials: true
+        methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        origin: https://backstage-backstage.{{ OCP_BASE }}
+      csp:
+        connect-src:
+        - '''self'''
+        - 'http:'
+        - 'https:'
+        - 'data:'
+        script-src:
+        - '''self'''
+        - '''unsafe-inline'''
+        - '''unsafe-eval'''
+        script-src-elem:
+        - '''self'''
+        - '''unsafe-inline'''
+        - '''unsafe-eval'''
+      database:
+        client: pg
+        connection:
+          host: ${POSTGRES_HOST}
+          password: ${POSTGRES_ADMIN_PASSWORD}
+          port: ${POSTGRES_PORT}
+          user: ${POSTGRES_USER}
+      listen:
+        host: 0.0.0.0
+        port: 7007
+      reading:
+        allow:
+        - host: '*.apps.cluster-l96t4.l96t4.sandbox2978.opentlc.com'
+    catalog:
+      locations:
+      - rules:
+        - allow:
+          - Template
+        target: https://gitlab-gitlab.{{ OCP_BASE }}/rhdh/software-templates/blob/main/showcase-templates.yaml
+        type: url
+      - rules:
+        - allow:
+          - Group
+          - User
+        target: https://gitlab-gitlab.{{ OCP_BASE }}/rhdh/software-templates/blob/main/org.yaml
+        type: url
+      - rules:
+        - allow:
+          - Template
+        target: https://gitlab-gitlab.{{ OCP_BASE }}/summit-lab/backstage-workshop/blob/master/showcase-templates.yaml
+        type: url
+      providers:
+        gitlab:
+          selfHosted:
+            host: gitlab-gitlab.{{ OCP_BASE }}
+            schedule:
+              frequency:
+                seconds: 10
+              timeout:
+                seconds: 60
+        ocm:
+          default:
+            kubernetesPluginRef: dev-cluster-infra
+            name: multiclusterhub
+            owner: group:rhdh
+            schedule:
+              frequency:
+                seconds: 10
+              timeout:
+                seconds: 60
+      rules:
+      - allow:
+        - Component
+        - System
+        - API
+        - Resource
+        - Location
+        - Template
+    enabled:
+      argocd: true
+      github: false
+      githubOrg: false
+      gitlab: true
+      jenkins: false
+      keycloak: true
+      kubernetes: true
+      ocm: true
+      permission: false
+      sonarqube: false
+      techdocs: true
+    integrations:
+      gitlab:
+      - apiBaseUrl: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4
+        baseUrl: https://gitlab-gitlab.{{ OCP_BASE }}
+        host: gitlab-gitlab.{{ OCP_BASE }}
+        token: glpat-2xXoUQYQUKsowcoHyw8u
+    kubernetes:
+      clusterLocatorMethods:
+      - clusters:
+        - authProvider: serviceAccount
+          name: dev-cluster-infra
+          serviceAccountToken: eyJhbGciOiJSUzI1NiIsImtpZCI6IjJWd0VtOUtSd3ExcTZUVFludXRQN21SU0s0eDZmVTdjNW5kTS1rbzlPTXMifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tcmd2bWMiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImEwYzc4MDczLTA5ZTUtNDUwZi1iMzAzLWRlYWQ1NWU3ZWQ5ZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.qa8gCUbVnTsC1-CJhsRJbCbRBv4VDHPhX6AP53qx5S3h4O3r5fCDz5VKv1-gqrRT1KhxlZxrlY4AajxwEm_iwIdqxk8PAWzo-twiEVstarprGTFBYUNsEx1EGS16zaDM-xxzjrcI_JYaOp0pwXU9OP3Vkwp9GFWCJUd68KUd3Spsoj8wq0AyoSiYpbae8jKEDwmnGcMTaL0nNZJcTs1px88dp6-jSnyVHqyQvQ-15ISeSNezBmWKKNRqwDAyT2NwzPScuFtrIwy55SgMYT3gts2YaVlIm8Jx7aCZobnBF2SZLxim-_ND4rShUT2Zlwa6VWymg5QjBIfu6vRTd3eiMg
+          skipTLSVerify: true
+          url: https://api.cluster-pwql9.pwql9.sandbox510.opentlc.com:6443
+        type: config
+      customResources:
+      - apiVersion: v1beta1
+        group: tekton.dev
+        plural: pipelineruns
+      - apiVersion: v1beta1
+        group: tekton.dev
+        plural: taskruns
+      - apiVersion: v1
+        group: route.openshift.io
+        plural: routes
+      serviceLocatorMethod:
+        type: multiTenant
+    permission:
+      enabled: false
+    proxy:
+      endpoints:
+        /developer-hub:
+          changeOrigin: true
+          pathRewrite:
+            ^/api/proxy/developer-hub/tech-radar: /gitops/janus-idp-gitops/-/raw/main/config/tech-radar.json
+          secure: false
+          target: https://gitlab-gitlab.{{ OCP_BASE }}/
+        /quay/api:
+          changeOrigin: true
+          headers:
+            Authorization: Bearer VB8IIKRX3DJAON1SXISKVAA624X6L7ZMVKOC89SN
+            X-Requested-With: XMLHttpRequest
+          secure: false
+          target: https://quay-l96t4.{{ OCP_BASE }}
+    quay:
+      uiUrl: https://quay-l96t4.apps.{{ OCP_BASE }}
+    scaffolder: null
+    signInPage: oauth2Proxy
+    techdocs:
+      builder: external
+      generator:
+        runIn: local
+      publisher:
+        awsS3:
+          bucketName: backstage-bucket
+          credentials:
+            accessKeyId: minio
+            secretAccessKey: MTUzMTc3
+          endpoint: https://minio-ic-shared-minio.apps.cluster-l96t4.l96t4.sandbox2978.opentlc.com
+          region: us-east-2
+          s3ForcePathStyle: true
+        type: awsS3

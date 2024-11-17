@@ -1,0 +1,30 @@
+apiVersion: keycloak.org/v1alpha1
+kind: KeycloakClient
+metadata:
+  name: openshift
+  namespace: rhsso
+  finalizers:
+    - client.cleanup
+  labels:
+    app: openshift
+spec:
+  client:
+    clientAuthenticatorType: client-secret
+    redirectUris:
+      - 'https://oauth-openshift.{{ OCP_BASE }}/oauth2callback/rhsso'
+    serviceAccountsEnabled: true
+    clientId: idp-4-ocp
+    defaultClientScopes:
+      - profile
+      - email
+      - roles
+      - acr
+      - web-origins
+    implicitFlowEnabled: false
+    publicClient: false
+    standardFlowEnabled: true
+    directAccessGrantsEnabled: true
+  realmSelector:
+    matchLabels:
+      app: openshift
+  scopeMappings: {}

@@ -1,0 +1,33 @@
+apiVersion: keycloak.org/v1alpha1
+kind: KeycloakClient
+metadata:
+  name: backstage
+  namespace: rhsso
+  finalizers:
+    - client.cleanup
+  labels:
+    app: backstage
+spec:
+  client:
+    clientAuthenticatorType: client-secret
+    redirectUris:
+      - 'https://backstage-developer-hub-backstage.{{ OCP_BASE }}/api/auth/oidc/handler/frame'
+    serviceAccountsEnabled: true
+    clientId: backstage
+    defaultClientScopes:
+      - profile
+      - email
+      - roles
+    implicitFlowEnabled: false
+    publicClient: false
+    standardFlowEnabled: true
+    directAccessGrantsEnabled: true
+  realmSelector:
+    matchLabels:
+      app: backstage
+  scopeMappings: {}
+  serviceAccountClientRoles:
+    realm-management:
+      - query-groups
+      - query-users
+      - view-users

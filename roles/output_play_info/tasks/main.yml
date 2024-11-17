@@ -1,0 +1,5 @@
+---
+# tasks file for output_play_info
+- name: Print gitops password
+  ansible.builtin.debug:
+    msg:  "The admin password for gitops is {{ gitops_clear_password }}" 

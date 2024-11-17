@@ -1,0 +1,7 @@
+---
+- name: Test some stuff
+  hosts: localhost 
+  connection: local
+
+  roles:
+    - name: configure-backstage

@@ -1,0 +1,22 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: aap-operatorgroup
+  generation: 1
+  namespace: aap
+spec:
+  upgradeStrategy: Default
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  labels:
+    operators.coreos.com/ansible-automation-platform-operator.aap: ""
+  name: ansible-automation-platform-operator
+  namespace: aap
+spec:
+  channel: stable-2.4-cluster-scoped
+  installPlanApproval: Automatic
+  name: ansible-automation-platform-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace

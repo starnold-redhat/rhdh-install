@@ -1,0 +1,47 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: app-config-rhdh
+  namespace: backstage
+data:
+  app-config-rhdh.yaml: |-
+    app:
+      title: Red Hat Developer Hub
+      baseUrl: https://backstage-developer-hub-backstage.{{ OCP_BASE }}
+    backend:
+      auth:
+        keys:
+          - secret: "${BACKEND_SECRET}"
+      baseUrl: https://backstage-developer-hub-backstage.{{ OCP_BASE }}
+      cors:
+        origin: https://backstage-developer-hub-backstage.{{ OCP_BASE }}
+    auth:
+      environment: development
+      session:
+        secret: ${BACKEND_SECRET}
+      providers:
+        oidc:
+          development:
+            metadataUrl: https://keycloak-rhsso.{{ OCP_BASE }}/realms/backstage/.well-known/openid-configuration # ${AUTH_OIDC_METADATA_URL}
+            clientId: ${AUTH_OIDC_CLIENT_ID}
+            clientSecret: ${AUTH_OIDC_CLIENT_SECRET}
+            prompt: auto 
+            ## Auth provider will try each resolver until it succeeds. Uncomment the resolvers you want to use to override the default resolver: `emailLocalPartMatchingUserEntityName`
+            signIn:
+              resolvers:
+                - resolver: preferredUsernameMatchingUserEntityName
+    signInPage:oidc
+    catalog:
+      providers:
+        keycloakOrg:
+          default:
+            baseUrl: https://keycloak-rhsso.{{ OCP_BASE }}
+            loginRealm: backstage
+            realm: backstage
+            clientId: ${AUTH_OIDC_CLIENT_ID}
+            clientSecret: ${AUTH_OIDC_CLIENT_SECRET}
+            schedule: 
+              frequency: { minutes: 1 }
+              timeout: { minutes: 1 }
+              initialDelay: { seconds: 15 }
+             

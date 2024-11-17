@@ -1,0 +1,105 @@
+---
+# tasks file for installing install-operators
+
+#######################################
+#  SSO/Keycloak operator
+#######################################
+- name: Create a rhsso namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: rhsso
+        
+
+- name: Install sso operator
+  kubernetes.core.k8s:
+    state: present
+    src: sso_operator.yaml
+
+
+- name: Wait for keycloak sso operator to install
+  kubernetes.core.k8s_info:
+    namespace: rhsso
+    kind: pod
+    label_selectors:
+      - name = rhsso-operator
+    wait: true
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: true
+
+
+#######################################
+#  RHDH operator
+#######################################
+- name: Create a rhdh-operator namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: backstage
+        
+
+- name: Install rhdh operator
+  kubernetes.core.k8s:
+    state: present
+    src: rhdh_operator.yaml
+
+
+- name: Wait for rhdh operator to install
+  kubernetes.core.k8s_info:
+    namespace: rhdh-operator
+    kind: pod
+    label_selectors:
+      - app = rhdh-operator
+    wait: true
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: true
+
+
+#######################################
+#  AAP operator
+#######################################
+- name: Create a aap namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: aap
+        
+
+- name: Install aap operator
+  kubernetes.core.k8s:
+    state: present
+    src: aap_operator.yaml
+
+
+- name: Wait for aap operator to install
+  kubernetes.core.k8s_info:
+    namespace: aap
+    kind: pod
+    label_selectors:
+      - control-plane = controller-manager
+    wait: true
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: true
+
+#######################################
+#  Pipelines operator
+#######################################
+- name: Install pipeline operator
+  kubernetes.core.k8s:
+    state: present
+    src: pipelines_operator.yaml

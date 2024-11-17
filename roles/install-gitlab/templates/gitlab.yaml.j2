@@ -1,0 +1,190 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitlab-persistent-storage
+  namespace: gitlab
+  labels:
+    app: gitlab
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: gp3-csi
+  resources:
+    requests:
+      storage: 10Gi
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cm-create-root-pat
+  namespace: gitlab
+  labels:
+    rht-gitops.com/openshift-gitops: gitlab
+data:
+  create-root-pat.sh: |
+    #!/bin/bash
+    set -e
+
+    echo -n "token = User.find(1).personal_access_tokens.create(name: 'apitoken', impersonation: false, expires_at: 365.days.from_now, scopes: [:api]); token.save!; token_value = token.token; File.open('/tmp/root.pat', 'w', 0600) { |file| file.write(token_value) }" | ./bin/rails console
+
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: gitlab-cm
+  namespace: gitlab
+  labels:
+    app: gitlab
+    rht-gitops.com/openshift-gitops: gitlab
+data:
+  GITLAB_PIPELINE_SCHEDULE_WORKER_CRON: '*/5 * * * *'
+  SMTP_AUTHENTICATION: login
+  GITLAB_NOTIFY_ON_BROKEN_BUILDS: 'true'
+  SMTP_STARTTLS: 'true'
+  DB_PORT: '5432'
+  GITLAB_ROOT_EMAIL: root@demo.redhat.com
+  GITLAB_SSH_HOST: ssh.gitlab-gitlab.{{ OCP_BASE }}
+  REDIS_PORT: '6379'
+  GITLAB_PORT: '443'
+  GITLAB_BACKUP_TIME: '04:30'
+  TZ: Europe/Berlin
+  GITLAB_HTTPS: 'true'
+  DB_HOST: gitlab-postgresql.gitlab.svc
+  SMTP_PORT: '587'
+  DB_NAME: gitlab_production
+  REDIS_HOST: gitlab-redis.gitlab.svc
+  GITLAB_HOST: gitlab-gitlab.{{ OCP_BASE }}
+  DB_USER: gitlab
+  SMTP_DOMAIN: example.com
+  DB_ADAPTER: postgresql
+  GITLAB_EMAIL_DISPLAY_NAME: Janus Admin
+  GITLAB_BACKUP_SCHEDULE: daily
+  SMTP_HOST: smtp.gitlab-gitlab.{{ OCP_BASE }}
+  SMTP_USER: gitlab
+  GITLAB_EMAIL_REPLY_TO: noreply@redhat.com
+  SMTP_ENABLED: 'false'
+  GITLAB_EMAIL: gitlab@example.com
+  GITLAB_NOTIFY_PUSHER: 'false'
+  GITLAB_SSH_PORT: '22'
+  GITLAB_TIMEZONE: Berlin
+  NGINX_MAX_UPLOAD_SIZE: 100m
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: gitlab
+  namespace: gitlab
+  labels:
+    app: gitlab
+    rht-gitops.com/openshift-gitops: gitlab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitlab
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: gitlab
+    spec:
+      restartPolicy: Always
+      serviceAccountName: gitlab
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
+      securityContext: {}
+      containers:
+        - resources:
+            requests:
+              cpu: '2'
+              memory: 4Gi
+          terminationMessagePath: /dev/termination-log
+          name: gitlab
+          securityContext:
+            privileged: true
+          ports:
+            - name: ssh
+              containerPort: 22
+              protocol: TCP
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: gitlab-persistent-storage
+              mountPath: /home/git/data
+            - name: create-root-pat-vol
+              mountPath: /scripts
+          terminationMessagePolicy: File
+          envFrom:
+            - configMapRef:
+                name: gitlab-cm
+            - secretRef:
+                name: gitlab-secret
+          image: 'quay.io/redhat-gpte/gitlab:17.3.4'
+      serviceAccount: gitlab
+      volumes:
+        - name: gitlab-persistent-storage
+          persistentVolumeClaim:
+            claimName: gitlab-persistent-storage
+        - name: create-root-pat-vol
+          configMap:
+            name: cm-create-root-pat
+            defaultMode: 511
+      dnsPolicy: ClusterFirst
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: gitlab
+  namespace: gitlab
+  labels:
+    app: gitlab
+    rht-gitops.com/openshift-gitops: gitlab
+spec:
+  ipFamilies:
+    - IPv4
+  ports:
+    - name: ssh
+      protocol: TCP
+      port: 22
+      targetPort: 22
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+  internalTrafficPolicy: Cluster
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    app: gitlab
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: gitlab
+  namespace: gitlab
+  labels:
+    app: gitlab
+    rht-gitops.com/openshift-gitops: gitlab
+spec:
+  to:
+    kind: Service
+    name: gitlab
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+  wildcardPolicy: None
+
+

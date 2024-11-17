@@ -1,0 +1,73 @@
+---
+# tasks file for rhsso
+
+- name: Create a rhsso namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: rhsso
+        
+- name: Add keycloak
+  kubernetes.core.k8s:
+    state: present
+    resource_definition: "{{ lookup('template', 'sso_keycloak.yaml.j2') }}"
+
+- name: Add backstage realms
+  kubernetes.core.k8s:
+    state: present
+    resource_definition: "{{ lookup('template', 'sso_realm_backstage.yaml.j2') }}"
+
+- name: Add openshift realms
+  kubernetes.core.k8s:
+    state: present
+    src: sso_realm_openshift.yaml
+
+- name: Add backstage client
+  kubernetes.core.k8s:
+    state: present
+    resource_definition: "{{ lookup('template', 'sso_backstage_client.yaml.j2') }}"
+
+- name: Add openshift client
+  kubernetes.core.k8s:
+    state: present
+    resource_definition: "{{ lookup('template', 'sso_backstage_openshift.yaml.j2') }}"
+
+- name: Add admin user
+  kubernetes.core.k8s:
+    state: present
+    src: sso_user_admin.yaml
+
+- name: Add user1 user
+  kubernetes.core.k8s:
+    state: present
+    src: sso_user_user1.yaml
+
+- name: Pause for 10 seconds waiting for keycloak to create the client secrets
+  ansible.builtin.pause:
+    seconds: 10
+
+- name: Retrieve keycloak client id and secret
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: keycloak-client-secret-backstage
+    namespace: rhsso
+    wait: true
+    wait_timeout: 300
+  register: sso_secret
+  failed_when: sso_secret.resources[0].data.CLIENT_ID| length == 0
+
+- name: Set keycloak client_id
+  set_fact:
+    keycloak_client_id: '{{ sso_secret.resources[0].data.CLIENT_ID }}'
+
+- name: Set keycloak client secret
+  set_fact:
+    keycloak_client_secret: '{{ sso_secret.resources[0].data.CLIENT_SECRET }}'
+
+- name: Set keycloak metadata url
+  set_fact:
+    keycloak_metadata_url: 'https://keycloak-rhsso{{ OCP_BASE }}/auth/realms/backstage'

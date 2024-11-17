@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: backstage
+  description: The keycloak org
+spec:
+  type: organization
+  profile:
+    displayName: Backstage
+    email: steve@demo.com
+  children: [backstage]

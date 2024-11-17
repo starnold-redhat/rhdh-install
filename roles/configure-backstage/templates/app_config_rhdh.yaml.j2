@@ -22,7 +22,7 @@ data:
       providers:
         oidc:
           development:
-            metadataUrl: https://keycloak-rhsso.{{ OCP_BASE }}/realms/backstage/.well-known/openid-configuration # ${AUTH_OIDC_METADATA_URL}
+            metadataUrl: https://keycloak-rhsso.{{ OCP_BASE }}/auth/realms/backstage/.well-known/openid-configuration # ${AUTH_OIDC_METADATA_URL}
             clientId: ${AUTH_OIDC_CLIENT_ID}
             clientSecret: ${AUTH_OIDC_CLIENT_SECRET}
             prompt: auto 

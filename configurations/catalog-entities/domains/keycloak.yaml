@@ -1,7 +1,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: Domain
 metadata:
-  name: ai-ml-app-platform
-  description: Everything related to AI/ML & App Platform Development
+  name: keycloak
+  description: The main keycloak domain
 spec:
-  owner: maarten-vandeperre-org
+  owner: steve

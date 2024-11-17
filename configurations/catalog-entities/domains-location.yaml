@@ -7,4 +7,4 @@ metadata:
   description: A collection of all Domains
 spec:
   targets:
-    - ./domains/ai-ml-app-platform-domain.yaml
+    - ./domains/keycloak.yaml

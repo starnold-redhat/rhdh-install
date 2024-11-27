@@ -11,3 +11,39 @@ data:
       - package: ./dynamic-plugins/dist/janus-idp-backstage-plugin-keycloak-backend-dynamic
         disabled: false
         pluginConfig: {}
+      - package: ./dynamic-plugins/dist/backstage-plugin-catalog-backend-module-github-dynamic
+        disabled: false
+        pluginConfig: {}
+      - disabled: false
+        package: http://plugin-registry.plugin-registries:8080/ansible-plugin-backstage-rhaap-1.1.0.tgz
+        integrity: sha512-vjlQ9hLDdHwY67E6S3gDQgXBsB/yO5GNuZQltFVxHKY1BGlwGvgSAhoejyN6mgpydGgJlXtM0hFL0vJ9pb6UCQ==
+        pluginConfig:
+          dynamicPlugins:
+            frontend:
+              ansible.plugin-backstage-rhaap:
+                appIcons:
+                - importName: AnsibleLogo
+                  name: AnsibleLogo
+                dynamicRoutes:
+                - importName: AnsiblePage
+                  menuItem:
+                    icon: AnsibleLogo
+                    text: Ansible
+                  path: /ansible
+      - disabled: false
+        package: http://plugin-registry.plugin-registries:8080/ansible-plugin-scaffolder-backend-module-backstage-rhaap-1.1.0.tgz
+        integrity: sha512-ndd3uILlkvZ+jrpNsnYjmwkQY/e71EcCYqjnAsAF3CeZ3aZG/FYgvHFQ5OR9sNQHTaQ+ZjCietH9403xHSNZxQ==
+        pluginConfig:
+          dynamicPlugins:
+            backend:
+              ansible.plugin-scaffolder-backend-module-backstage-rhaap:
+                mountPoints:
+                - importName: createAnsibleContentAction
+                  mountPoint: entity.page.overview/cards
+      - disabled: false
+        package: http://plugin-registry.plugin-registries:8080/ansible-plugin-backstage-rhaap-backend-1.1.0.tgz
+        integrity: sha512-EaBuyPWVpfsSpuWLYPZzIol3CxTqP39dabQmzDZgoVuyFgq8UA4kXyhyyZLNm0B5C+u0Sa/sksKdhqRi/tDLaw==
+        pluginConfig:
+          dynamicPlugins:
+            backend:
+              ansible.plugin-backstage-rhaap-backend: null

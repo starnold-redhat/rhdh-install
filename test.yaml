@@ -4,4 +4,4 @@
   connection: local
 
   roles:
-    - name: configure-backstage
+    - name: install-aap-rhdh-plugins

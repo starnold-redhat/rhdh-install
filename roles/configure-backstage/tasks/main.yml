@@ -24,6 +24,10 @@
   set_fact:
     keycloak_client_secret: '{{ sso_secret.resources[0].data.CLIENT_SECRET }}'
 
+- name: Print client secret
+  debug:
+    var: keycloak_client_secret
+
 - name: Set keycloak metadata url
   set_fact:
     keycloak_metadata_url: 'https://keycloak-rhsso.{{ OCP_BASE }}/auth/realms/backstage'
@@ -45,7 +49,24 @@
     state: present
     src: dynamic_plugins_rhdh_cm.yaml
 
+- name: Install rhdh_custom_config config map
+  kubernetes.core.k8s:
+    state: present
+    src: rhdh_custom_config.yaml
+
 - name: Install backstage
   kubernetes.core.k8s:
     state: present
     src: developer_hub.yaml
+
+- name: Wait for Backstage to start
+  kubernetes.core.k8s_info:
+    namespace: backstage
+    kind: pod
+    label_selectors:
+      - rhdh.redhat.com/app = backstage-developer-hub
+    wait: true
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: true

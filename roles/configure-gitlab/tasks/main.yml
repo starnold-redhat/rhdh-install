@@ -56,7 +56,7 @@
 
 - name: List users and check if already configured
   ansible.builtin.uri:
-    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/users?per_page=100
+    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/users?username=user1
     method: GET
     headers:
       PRIVATE-TOKEN: '{{ root_token }}'
@@ -64,8 +64,12 @@
     status_code: 200
   register: r_existingusers
 
+- name: debug pre existing users
+  debug:
+    var: r_existingusers
+
 - name: Create users
-  when: r_existingusers | length == 0
+  when: r_existingusers.json | length ==0
   ignore_errors: true
   ansible.builtin.uri:
     url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/users
@@ -82,6 +86,7 @@
     headers:
       PRIVATE-TOKEN: '{{ root_token }}'
     validate_certs: false
+    status_code: 201
   register: r_user
   loop:
     - user1
@@ -91,7 +96,6 @@
     - user5
 
 - name: List users
-  when: r_existingusers | length == 0
   ansible.builtin.uri:
     url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/users?per_page=100
     method: GET
@@ -101,8 +105,18 @@
     status_code: 200
   register: r_users
 
+- name: List groups
+  ansible.builtin.uri:
+    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/groups?per_page=100
+    method: GET
+    headers:
+      PRIVATE-TOKEN: '{{ root_token }}'
+    validate_certs: false
+    status_code: 200
+  register: r_existing_groups
+
 - name: Create group
-  when: r_existingusers | length == 0
+  when: r_existing_groups.json | length == 0
   ignore_errors: true
   ansible.builtin.uri:
     url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/groups
@@ -115,11 +129,11 @@
     headers:
       PRIVATE-TOKEN: '{{ root_token }}'
     validate_certs: false
+    status_code: 201
   register: r_group
 
-
 - name: Import repository to group
-  when: r_existingusers | length == 0
+  when: r_existing_groups.json | length == 0
   ansible.builtin.uri:
     url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/projects
     method: POST
@@ -142,7 +156,7 @@
       url: https://github.com/redhat-gpe/rh1-rhdh-software-templates.git
 
 - name: Add user to group
-  when: r_existingusers | length == 0 and item.username.startswith('user')
+  when: r_existing_groups.json | length == 0 and item.username.startswith('user')
   ansible.builtin.uri:
     url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/groups/{{ r_group.json.id }}/members
     method: POST
@@ -161,7 +175,7 @@
   loop: '{{ r_users.json }}'
 
 - name: Create group
-  when: r_existingusers | length == 0
+  when: r_existing_groups.json | length == 0
   ansible.builtin.uri:
     url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/groups
     method: POST
@@ -180,7 +194,7 @@
   until: r_group.status == 201
 
 - name: Import repository to group
-  when: r_existingusers | length == 0
+  when: r_existing_groups.json | length == 0
   ansible.builtin.uri:
     url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/projects
     method: POST
@@ -203,7 +217,7 @@
       url: https://github.com/redhat-gpe/janus-idp-gitops.git
 
 - name: Add user to group
-  when: r_existingusers | length == 0 and item.username.startswith('user')
+  when: r_existing_groups.json | length == 0 and item.username.startswith('user')
   ansible.builtin.uri:
     url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/groups/{{ r_group.json.id }}/members
     method: POST

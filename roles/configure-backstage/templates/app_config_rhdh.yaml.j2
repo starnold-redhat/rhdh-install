@@ -5,6 +5,10 @@ metadata:
   namespace: backstage
 data:
   app-config-rhdh.yaml: |-
+    ansible:
+      creatorService:
+        baseUrl: 127.0.0.1
+        port: "8000"
     app:
       title: Red Hat Developer Hub
       baseUrl: https://backstage-developer-hub-backstage.{{ OCP_BASE }}
@@ -20,9 +24,11 @@ data:
       session:
         secret: ${BACKEND_SECRET}
       providers:
+        guest:
+          dangerouslyAllowOutsideDevelopment: true
         oidc:
           development:
-            metadataUrl: https://keycloak-rhsso.{{ OCP_BASE }}/auth/realms/backstage/.well-known/openid-configuration # ${AUTH_OIDC_METADATA_URL}
+            metadataUrl: https://keycloak-rhsso.{{ OCP_BASE }}/auth/realms/backstage/.well-known/openid-configuration
             clientId: ${AUTH_OIDC_CLIENT_ID}
             clientSecret: ${AUTH_OIDC_CLIENT_SECRET}
             prompt: auto 
@@ -30,18 +36,43 @@ data:
             signIn:
               resolvers:
                 - resolver: preferredUsernameMatchingUserEntityName
-    signInPage:oidc
+    signInPage: oidc
     catalog:
+      processingInterval: { minutes: 1 }
+      processing:
+        cache:
+          enabled: false
+      lifecycles:
+        - production
+        - staging
+      rules:
+        - allow: [Location, Component, API, Resource, System, Domain, Group, User, Template]
+      locations: 
+        - rules:
+          - allow:
+              - Template
+          target: https://github.com/starnold-redhat/rhdh_software_templates/blob/main/showcase-templates.yaml
+          type: url
+        - rules:
+          - allow:
+            - Group
+            - User
+          target: https://github.com/starnold-redhat/rhdh_software_templates/blob/main/org.yaml
+          type: url
+        - rules:
+          - allow:
+            - Template
+          target: https://gitlab-gitlab.apps.{{ OCP_BASE }}/summit-lab/backstage-workshop/blob/master/showcase-templates.yaml
+          type: url
       providers:
         keycloakOrg:
           default:
             baseUrl: https://keycloak-rhsso.{{ OCP_BASE }}
-            loginRealm: backstage
-            realm: backstage
+            loginRealm: ${AUTH_OIDC_CLIENT_ID}
+            realm: ${AUTH_OIDC_CLIENT_ID}
             clientId: ${AUTH_OIDC_CLIENT_ID}
             clientSecret: ${AUTH_OIDC_CLIENT_SECRET}
             schedule: 
               frequency: { minutes: 1 }
               timeout: { minutes: 1 }
               initialDelay: { seconds: 15 }
-             

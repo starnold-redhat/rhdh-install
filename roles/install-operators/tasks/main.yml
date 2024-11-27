@@ -36,7 +36,7 @@
 #######################################
 #  RHDH operator
 #######################################
-- name: Create a rhdh-operator namespace
+- name: Create a backstage namespace
   kubernetes.core.k8s:
     state: present
     definition:
@@ -44,6 +44,15 @@
       kind: Namespace
       metadata:
         name: backstage
+
+- name: Create a rhdh-operator namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: rhdh-opertaor
         
 
 - name: Install rhdh operator
@@ -103,3 +112,12 @@
   kubernetes.core.k8s:
     state: present
     src: pipelines_operator.yaml
+
+
+#######################################
+#  Dev Workspaces operator
+#######################################
+- name: Install dev workspaces operator
+  kubernetes.core.k8s:
+    state: present
+    src: devworkspaces_operator.yaml

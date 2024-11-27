@@ -4,8 +4,8 @@
   connection: local
 
   roles:
-    - name: install-operators 
-    - name: install-gitlab
-    - name: configure-gitlab
-    - name: install-sso
+#    - name: install-operators 
+#    - name: install-gitlab
+#    - name: configure-gitlab
+#    - name: install-sso
     - name: configure-backstage    

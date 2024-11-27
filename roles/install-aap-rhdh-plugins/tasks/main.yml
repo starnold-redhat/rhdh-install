@@ -1,0 +1,22 @@
+---
+# tasks file for install-aap-rhdh-plugins
+- name: Create a backstage namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: plugin-registries
+
+- name: Create build and install
+  shell: |
+    oc new-build httpd --name=plugin-registry --binary -n plugin-registries
+
+- name: Start Build
+  shell: |
+    oc start-build plugin-registry --from-dir=roles/install-aap-rhdh-plugins/files --wait -n plugin-registries
+
+- name: Create app
+  shell: |
+    oc new-app --image-stream=plugin-registry -n plugin-registries

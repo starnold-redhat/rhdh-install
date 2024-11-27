@@ -5,7 +5,7 @@ metadata:
   annotations:
     olm.providedAPIs: Backstage.v1alpha1.rhdh.redhat.com,Backstage.v1alpha2.rhdh.redhat.com
   name: rhdh-operator
-  namespace: backstage
+  namespace: rhdh-operator
 spec:
   upgradeStrategy: Default
 ---
@@ -15,11 +15,11 @@ metadata:
   labels:
     operators.coreos.com/rhdh.rhdh-operator: ""
   name: rhdh
-  namespace: backstage
+  namespace: rhdh-operator
 spec:
   channel: fast
   installPlanApproval: Automatic
   name: rhdh
   source: redhat-operators
   sourceNamespace: openshift-marketplace
-  startingCSV: rhdh-operator.v1.3.0
+  startingCSV: rhdh-operator.v1.3.1

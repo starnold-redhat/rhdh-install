@@ -24,3 +24,5 @@ spec:
       enabled: true
   database:
     enableLocalDb: true
+  rawRuntimeConfig:
+    backstageConfig: rhdh-custom-config

@@ -9,6 +9,9 @@ data:
       creatorService:
         baseUrl: 127.0.0.1
         port: "8000"
+      devSpaces:
+        baseUrl: https://devspaces.{{ OCP_BASE }}
+      
     app:
       title: Red Hat Developer Hub
       baseUrl: https://backstage-developer-hub-backstage.{{ OCP_BASE }}
@@ -51,7 +54,7 @@ data:
         - rules:
           - allow:
               - Template
-          target: https://github.com/starnold-redhat/rhdh_software_templates/blob/main/showcase-templates.yaml
+          target: https://gitlab-gitlab.{{ OCP_BASE }}/rhdh/software-templates/-/blob/main/showcase-templates.yaml
           type: url
         - rules:
           - allow:
@@ -59,12 +62,15 @@ data:
             - User
           target: https://github.com/starnold-redhat/rhdh_software_templates/blob/main/org.yaml
           type: url
-        - rules:
-          - allow:
-            - Template
-          target: https://gitlab-gitlab.apps.{{ OCP_BASE }}/summit-lab/backstage-workshop/blob/master/showcase-templates.yaml
-          type: url
       providers:
+        gitlab:
+          selfHosted:
+            host: gitlab-gitlab.{{ OCP_BASE }}
+            schedule:
+              frequency:
+                seconds: 10
+              timeout:
+                seconds: 60
         keycloakOrg:
           default:
             baseUrl: https://keycloak-rhsso.{{ OCP_BASE }}
@@ -76,3 +82,9 @@ data:
               frequency: { minutes: 1 }
               timeout: { minutes: 1 }
               initialDelay: { seconds: 15 }
+    integrations:
+      gitlab:
+      - apiBaseUrl: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4
+        baseUrl: https://gitlab-gitlab.{{ OCP_BASE }}
+        host: gitlab-gitlab.{{ OCP_BASE }}
+        token: {{ gitlab_pat }}

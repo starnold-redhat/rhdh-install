@@ -4,8 +4,11 @@
   connection: local
 
   roles:
-#    - name: install-operators 
-#    - name: install-gitlab
-#    - name: configure-gitlab
-#    - name: install-sso
+    - name: install-operators 
+    - name: install-gitlab
+    - name: configure-gitlab
+    - name: configure-gitlab-rhdh-template-project
+    - name: install-sso
+    - name: install-aap-rhdh-plugins
+    - name: configure-devworkspaces
     - name: configure-backstage    

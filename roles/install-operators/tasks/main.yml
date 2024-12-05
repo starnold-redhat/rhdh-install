@@ -25,7 +25,7 @@
     namespace: rhsso
     kind: pod
     label_selectors:
-      - name = rhsso-operator
+      - name=rhsso-operator
     wait: true
     wait_timeout: 300
     wait_condition:
@@ -52,7 +52,7 @@
       api_version: v1
       kind: Namespace
       metadata:
-        name: rhdh-opertaor
+        name: rhdh-operator
         
 
 - name: Install rhdh operator
@@ -66,7 +66,7 @@
     namespace: rhdh-operator
     kind: pod
     label_selectors:
-      - app = rhdh-operator
+      - app=rhdh-operator
     wait: true
     wait_timeout: 300
     wait_condition:
@@ -98,7 +98,7 @@
     namespace: aap
     kind: pod
     label_selectors:
-      - control-plane = controller-manager
+      - control-plane=controller-manager
     wait: true
     wait_timeout: 300
     wait_condition:
@@ -121,3 +121,29 @@
   kubernetes.core.k8s:
     state: present
     src: devworkspaces_operator.yaml
+
+#######################################
+#  DevSpaces operator
+#######################################
+- name: Install devspaces operator
+  kubernetes.core.k8s:
+    state: present
+    src: devspaces_operator.yaml
+
+#######################################
+#  Openshift Gitops operator
+#######################################
+- name: Create a openshift-gitops-operator namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: openshift-gitops-operator
+        
+
+- name: Install Openshift Gitops operator
+  kubernetes.core.k8s:
+    state: present
+    src: gitops_operator.yaml

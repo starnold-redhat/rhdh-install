@@ -1,6 +1,6 @@
 ---
 # tasks file for install-aap-rhdh-plugins
-- name: Create a backstage namespace
+- name: Create a plugin-registries namespace
   kubernetes.core.k8s:
     state: present
     definition:
@@ -9,14 +9,26 @@
       metadata:
         name: plugin-registries
 
+- name: Retrieve build plugin-registry-1
+  kubernetes.core.k8s_info:
+    api_version: build.openshift.io/v1
+    kind: buildconfig
+    name: plugin-registry
+    namespace: plugin-registries
+  register: build_info
+
+
 - name: Create build and install
+  when: build_info.resources | length ==0
   shell: |
     oc new-build httpd --name=plugin-registry --binary -n plugin-registries
 
-- name: Start Build
+- name: Start Build of Http server to host ansible plugins
+  when: build_info.resources | length ==0
   shell: |
     oc start-build plugin-registry --from-dir=roles/install-aap-rhdh-plugins/files --wait -n plugin-registries
 
 - name: Create app
+  when: build_info.resources | length ==0
   shell: |
     oc new-app --image-stream=plugin-registry -n plugin-registries

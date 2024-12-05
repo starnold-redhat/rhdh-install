@@ -15,6 +15,10 @@ data:
         disabled: false
         pluginConfig: {}
       - disabled: false
+        package: ./dynamic-plugins/dist/backstage-plugin-catalog-backend-module-gitlab-dynamic
+      - disabled: false
+        package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-gitlab-dynamic
+      - disabled: false
         package: http://plugin-registry.plugin-registries:8080/ansible-plugin-backstage-rhaap-1.1.0.tgz
         integrity: sha512-vjlQ9hLDdHwY67E6S3gDQgXBsB/yO5GNuZQltFVxHKY1BGlwGvgSAhoejyN6mgpydGgJlXtM0hFL0vJ9pb6UCQ==
         pluginConfig:

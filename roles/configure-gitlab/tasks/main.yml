@@ -115,7 +115,43 @@
     status_code: 200
   register: r_existing_groups
 
-- name: Create group
+- name: Create group development
+  when: r_existing_groups.json | length == 0
+  ignore_errors: true
+  ansible.builtin.uri:
+    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/groups
+    method: POST
+    body_format: form-urlencoded
+    body:
+      name: development
+      path: development
+      visibility: public
+    headers:
+      PRIVATE-TOKEN: '{{ root_token }}'
+    validate_certs: false
+    status_code: 201
+  register: r_group
+
+- name: Add users to development group
+  when: r_existing_groups.json | length == 0 and item.username.startswith('user')
+  ansible.builtin.uri:
+    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/groups/{{ r_group.json.id }}/members
+    method: POST
+    body_format: form-urlencoded
+    body:
+      user_id: '{{ item.id }}'
+      access_level: 50
+    headers:
+      PRIVATE-TOKEN: '{{ root_token }}'
+    validate_certs: false
+    status_code: 201
+  register: r_group_user
+  retries: 100
+  delay: 5
+  until: r_group_user.status == 201
+  loop: '{{ r_users.json }}'
+
+- name: Create group rhdh
   when: r_existing_groups.json | length == 0
   ignore_errors: true
   ansible.builtin.uri:
@@ -132,30 +168,11 @@
     status_code: 201
   register: r_group
 
-- name: Import repository to group
-  when: r_existing_groups.json | length == 0
-  ansible.builtin.uri:
-    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/projects
-    method: POST
-    body_format: form-urlencoded
-    body:
-      name: '{{ item.name }}'
-      import_url: '{{ item.url }}'
-      visibility: public
-      namespace_id: '{{ r_group.json.id }}'
-    headers:
-      PRIVATE-TOKEN: '{{ root_token }}'
-    validate_certs: false
-    status_code: 201
-  retries: 100
-  delay: 5
-  register: r_import
-  until: r_import.status == 201
-  loop:
-    - name: rh1-software-templates
-      url: https://github.com/redhat-gpe/rh1-rhdh-software-templates.git
+- name: Set gitlab rhdh group info
+  set_fact:
+    rhdh_group: '{{ r_group }}'
 
-- name: Add user to group
+- name: Add users to rhdh group
   when: r_existing_groups.json | length == 0 and item.username.startswith('user')
   ansible.builtin.uri:
     url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/groups/{{ r_group.json.id }}/members
@@ -174,66 +191,27 @@
   until: r_group_user.status == 201
   loop: '{{ r_users.json }}'
 
-- name: Create group
-  when: r_existing_groups.json | length == 0
+# need to create a personal access token for RHDH to use git
+- name: Create pat for use by RHDH
   ansible.builtin.uri:
-    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/groups
+    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/users/1/personal_access_tokens
     method: POST
     body_format: form-urlencoded
     body:
-      name: gitops
-      path: gitops
-      visibility: public
+      name: "rhdh token"
+      scopes: "api, read_api, read_user, read_repository, write_repository, sudo, admin_mode"
     headers:
       PRIVATE-TOKEN: '{{ root_token }}'
     validate_certs: false
     status_code: 201
-  register: r_group
-  retries: 100
-  delay: 5
-  until: r_group.status == 201
+  register: new_pat 
 
-- name: Import repository to group
-  when: r_existing_groups.json | length == 0
-  ansible.builtin.uri:
-    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/projects
-    method: POST
-    body_format: form-urlencoded
-    body:
-      name: '{{ item.name }}'
-      import_url: '{{ item.url }}'
-      visibility: public
-      namespace_id: '{{ r_group.json.id }}'
-    headers:
-      PRIVATE-TOKEN: '{{ root_token }}'
-    validate_certs: false
-    status_code: 201
-  retries: 100
-  delay: 5
-  register: r_import
-  until: r_import.status == 201
-  loop:
-    - name: janus-idp-gitops
-      url: https://github.com/redhat-gpe/janus-idp-gitops.git
 
-- name: Add user to group
-  when: r_existing_groups.json | length == 0 and item.username.startswith('user')
-  ansible.builtin.uri:
-    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/groups/{{ r_group.json.id }}/members
-    method: POST
-    body_format: form-urlencoded
-    body:
-      user_id: '{{ item.id }}'
-      access_level: 50
-    headers:
-      PRIVATE-TOKEN: '{{ root_token }}'
-    validate_certs: false
-    status_code: 201
-  register: r_group_user
-  retries: 100
-  delay: 5
-  until: r_group_user.status == 201
-  loop: '{{ r_users.json }}'
+- name: Set gitlab pat
+  set_fact:
+    gitlab_pat: '{{ new_pat.json.token }}'
+
+# need to create an application for use by keycloak 
 
 - name: Create keycloak application for oidc
   ansible.builtin.uri:
@@ -242,7 +220,7 @@
     body_format: form-urlencoded
     body:
       name: "keycloak"
-      redirect_uri: "https://keycloak-rhsso.apps.cluster-pwql9.pwql9.sandbox510.opentlc.com/auth/realms/backstage/broker/GitLab/endpoint"
+      redirect_uri: "https://keycloak-rhsso.{{ OCP_BASE }}/auth/realms/backstage/broker/GitLab/endpoint"
       scopes: "api read_user read_repository write_repository sudo openid profile email"
       confidential: false
     headers:

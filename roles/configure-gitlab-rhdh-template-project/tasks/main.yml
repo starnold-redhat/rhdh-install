@@ -1,0 +1,92 @@
+---
+- name: Retrieve root token
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: root-user-personal-token
+    namespace: gitlab
+  register: r_root_token
+  failed_when: r_root_token.resources[0].data.token | length == 0
+
+- name:
+  debug:
+    var: r_root_token
+
+- name: Decode root token
+  set_fact:
+    root_token: '{{ r_root_token.resources[0].data.token | b64decode }}'
+
+- name: get rhdh group
+  ansible.builtin.uri:
+    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/groups?search=rhdh
+    method: GET
+    headers:
+      PRIVATE-TOKEN: '{{ root_token }}'
+    validate_certs: false
+    status_code: 200
+  register: rhdh_group
+
+- name: debug
+  debug:
+    var: rhdh_group
+
+- name: create software templates project
+  ignore_errors: true
+  ansible.builtin.uri:
+    url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/projects?
+    method: POST
+    body_format: form-urlencoded
+    body:
+      name: software-templates
+      namespace_id: '{{ rhdh_group.json[0].id }}'
+    headers:
+      PRIVATE-TOKEN: '{{ root_token }}'
+    validate_certs: false
+    status_code: 201
+
+# delete the temp folder
+- name: Delete software_templates
+  ansible.builtin.file:
+    state: absent
+    path: '{{ playbook_dir }}/software-templates'
+
+# clone the project into the current folder
+- name: Git checkout
+  ansible.builtin.shell: |
+    git config --global user.name "user1 GitLab"
+    git config --global user.email "user1@demo.redhat.com"
+    git clone 'https://gitlab-gitlab.{{ OCP_BASE }}/rhdh/software-templates.git'
+    cd software-templates
+    git switch --force-create main
+
+# add the files
+- name: Creates ansible-templates cdirectory
+  ansible.builtin.file:
+    path: software-templates/ansible-templates
+    state: directory
+
+- name: Creates catalog-info directory
+  ansible.builtin.copy:
+    src: '{{ playbook_dir }}/roles/configure-gitlab-rhdh-template-project/files/gitrepo/'
+    dest: '{{ playbook_dir }}/software-templates'
+
+- name: Template showcase-templates.yaml
+  ansible.builtin.template:
+    src: showcase-templates.yaml.j2
+    dest: '{{ playbook_dir }}/software-templates/showcase-templates.yaml'
+
+- name: Replace gitlab-gitlab.OCP_BASE
+  ansible.builtin.replace:
+    path: software-templates/ansible-templates/playbooks.yaml
+    regexp: 'gitlab-gitlab.OCP_BASE'
+    replace: 'gitlab-gitlab.{{ OCP_BASE }}'
+  
+# run some shell to add, commit and push
+- name: Git commit and push
+  ansible.builtin.shell: |
+    cd software-templates
+    git config --global user.name "user1 GitLab"
+    git config --global user.email "user1@demo.redhat.com"
+    git add .
+    git commit -m "add README"
+    git push --set-upstream origin main

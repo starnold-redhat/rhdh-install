@@ -1,0 +1,16 @@
+---
+# tasks file for configure-devworkspaces
+- name: Create a openshift-devspaces namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: devspaces
+
+
+- name: Install devspaces instance 
+  kubernetes.core.k8s:
+    state: present
+    src: devspaces.yaml

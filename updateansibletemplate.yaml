@@ -3,7 +3,7 @@
   hosts: localhost
   connection: local
   vars:
-    gitlab_pat: 'glpat-GdrX19vG9iGLkQ3bTMa-'
+    gitlab_pat: 'TODO'
 
   roles:
     - configure-gitlab-rhdh-template-project

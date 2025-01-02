@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ${{ values.system }}
+  namespace: openshift-gitops  # The namespace where ArgoCD is installed
+spec:
+  project: default  # ArgoCD project; can be customized
+  source:
+    repoURL: 'https://gitlab-gitlab.apps.cluster-jmkx4.jmkx4.sandbox109.opentlc.com/development/${{ values.system }}-gitops.git'  # Replace with your repo URL
+    targetRevision: HEAD  # Branch, tag, or commit to deploy
+    path: '.'  # Path within the repository to the Kubernetes manifests
+  destination:
+    server: https://kubernetes.default.svc  # Cluster URL (in-cluster in this case)
+    namespace: ${{ values.system }}  # The target namespace
+  syncPolicy:
+    automated:  # Enable automated sync
+      prune: true  # Prune resources no longer in the source repo
+      selfHeal: true  # Automatically sync out-of-sync resources
+    syncOptions:
+    - CreateNamespace=true  # Allows ArgoCD to create the namespace if it doesn't exist

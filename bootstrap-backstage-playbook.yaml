@@ -2,6 +2,16 @@
 - name: Bootstrap Backstage
   hosts: localhost 
   connection: local
+  collections:
+    - infra.aap_configuration
+  vars:
+    aap_applications:
+      - name: rhdh
+        organization: Default
+        description: red hat developer hub
+        state: "present"
+        client_type: "confidential"
+        authorization_grant_type: "password"
 
   roles:
     - name: install-operators 
@@ -11,4 +21,7 @@
     - name: install-sso
     - name: install-aap-rhdh-plugins
     - name: configure-devworkspaces
+    - name: install-aap-controller
+    - {role: infra.aap_configuration.controller_license, ignore_errors: yes }
+    - name: configure-aap-controller
     - name: configure-backstage    

@@ -1,0 +1,9 @@
+---
+- name: Update ansible software template
+  hosts: localhost
+  connection: local
+  vars:
+    gitlab_pat: 'glpat-GdrX19vG9iGLkQ3bTMa-'
+
+  roles:
+    - configure-gitlab-rhdh-template-project

@@ -1,0 +1,40 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: ${{ values.system }}-trigger-template-new-pipeline
+  namespace: ${{ values.system }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  params:
+    - name: git-revision
+    - name: git-commit-message
+    - name: git-repo-url
+    - name: git-repo-name
+    - name: pusher-name
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        annotations:
+          pipeline.openshift.io/started-by: admin
+        generateName: ${{ values.system }}-pipeline-
+        labels:
+          tekton.dev/pipeline: ${{ values.system }}-pipeline
+        namespace: ${{ values.system }}
+      spec:
+        params: []
+        pipelineRef:
+          name: ${{ values.system }}-pipeline
+        status: null
+        workspaces:
+          - name: src
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 1Gi
+                storageClassName: gp3-csi
+                volumeMode: Filesystem

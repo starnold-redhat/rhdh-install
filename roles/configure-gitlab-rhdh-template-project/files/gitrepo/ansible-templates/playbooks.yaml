@@ -54,27 +54,18 @@ spec:
               kind:
                 - Group
                 - User
-        system:
-          title: System
-          type: string
-          description: The Red Hat Developer Hub system catalog item name. This will appear on the “My items” tab. For example, “my-devhub-system”.
-          ui:field: EntityPicker
-          ui:options:
-            catalogFilter:
-              kind:
-                - System
+      
   steps:
     - id: ansible
       name: Generating the Ansible Source Code Component
-      action: ansible:content:create
+      action: fetch:template
       input:
-        repoOwner:   ${{ parameters.repoOwner }}
-        repoName:   ${{ parameters.repoName }}
-        description:   ${{ parameters.description }}
-        collectionGroup:   ${{ parameters.collectionGroup }}
-        collectionName:  ${{ parameters.collectionName }}
-        applicationType:  playbook-project
-        sourceControl: gitlab-gitlab.OCP_BASE
+        url: ../src/ansible-playbook
+        copyWithoutTemplating: []
+        values:
+          system: ${{ parameters.repoName }}
+          gitlab_project_id: ${{ steps.publish.output.projectId }}
+        targetPath: ./tenant-src
 
     - id: catalogTemplate
       name: Generating the Catalog Info Component
@@ -84,7 +75,7 @@ spec:
         values:
           repoUrl:   ${{ steps.ansible.output.repoUrl }}
           owner:  ${{ parameters.owner }}
-          system:  ${{ parameters.system }}
+          system:  ${{ parameters.repoName }}
           applicationType: playbook-project
           description:  ${{ parameters.description }}
           collectionGroup:  ${{ parameters.collectionGroup }}
@@ -102,12 +93,13 @@ spec:
         repoUrl:   "${{ steps.ansible.output.repoUrl }}"
         repoVisibility: 'public'
         defaultBranch: main
+        sourcePath: ./tenant-src
 
     - id: log publish output
       name: Parse Repo URL
       action: debug:log
       input:
-        extra:   ${{ steps.publish.output.repoContentsUrl }}
+        extra:   ${{ steps.publish.output }}
         
     - id: register
       name: Register
@@ -115,6 +107,40 @@ spec:
       input:
         repoContentsUrl:  ${{ steps.publish.output.repoContentsUrl }}
         catalogInfoPath: '/catalog-info.yaml'
+
+    - id: template-gitops-deployment
+      name: Generating Deployment Resources
+      action: fetch:template
+      input:
+        url: ../gitops/ansible-playbook
+        copyWithoutTemplating: []
+        values:
+          system: ${{ parameters.repoName }}
+          gitlab_project_id: ${{ steps.publish.output.projectId }}
+        targetPath: ./tenant-gitops
+
+    - id: publishgitops
+      name: Publish Gitops
+      action: publish:gitlab
+      input:
+        allowedHosts:
+          - gitlab-gitlab.OCP_BASE
+        description:  ${{ parameters.description }}
+        repoUrl:   "${{ steps.ansible.output.repoUrl }}-gitops"
+        repoVisibility: 'public'
+        defaultBranch: main
+        sourcePath: ./tenant-gitops
+
+    - id: create-argocd-resources
+      name: Create ArgoCD Resources
+      action: argocd:create-resources
+      input:
+        projectName: ${{ parameters.repoName }}
+        appName: ${{ parameters.repoName }}-bootstrap
+        argoInstance: main
+        namespace: openshift-gitops
+        repoUrl: https://gitlab-gitlab.OCP_BASE/${{ parameters.repoOwner }}/${{ parameters.repoName }}-gitops.git
+        path: 'bootstrap/'
 
   output:
     links:

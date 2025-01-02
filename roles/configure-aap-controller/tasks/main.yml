@@ -1,0 +1,157 @@
+#SPDX-License-Identifier: MIT-0
+---
+# delete the aap token secret
+- name: Delete the aaptoken Kubernetes Secret
+  kubernetes.core.k8s:
+    state: absent
+    api_version: v1
+    kind: Secret
+    namespace: aap  
+    name: aaptoken 
+
+# delete the aap token in aap
+- name: Get any existing tokens
+  ansible.builtin.uri:
+    url: https://controller-aap.{{ OCP_BASE }}/api/v2/tokens
+    method: GET
+    user: "admin"
+    password: "{{ aap_password }}"
+    force_basic_auth: yes
+    validate_certs: false
+    status_code: 200
+  register: api_tokens
+
+- name: Delete the token
+  ansible.builtin.uri:
+    url: https://controller-aap.{{ OCP_BASE }}/api/v2/tokens/{{item.id}}/
+    method: DELETE
+    user: "admin"
+    password: "{{ aap_password }}"
+    force_basic_auth: yes
+    validate_certs: false
+    status_code: 204
+  loop: "{{ api_tokens.json.results }}"
+  when: item.summary_fields.application.name == "rhdh"
+  ignore_errors: true
+
+# Get the aap application
+- name: Get rhdh applications
+  ansible.builtin.uri:
+    url: https://controller-aap.{{ OCP_BASE }}/api/v2/applications
+    method: GET
+    user: "admin"
+    password: "{{ aap_password }}"
+    force_basic_auth: yes
+    validate_certs: false
+    status_code: 200
+  register: api_applications
+
+- name: Delete the rhdh application
+  ansible.builtin.uri:
+    url: https://controller-aap.{{ OCP_BASE }}/api/v2/applications/{{item.id}}/
+    method: DELETE
+    user: "admin"
+    password: "{{ aap_password }}"
+    force_basic_auth: yes
+    validate_certs: false
+    status_code: 204
+  loop: "{{ api_applications.json.results }}"
+  when: item.name == "rhdh"
+  ignore_errors: true
+
+ 
+################################################
+# Now create stuff
+################################################
+# create a new application if secret doesnt exist
+- name: Get the organization
+  ansible.builtin.uri:
+    url: https://controller-aap.{{ OCP_BASE }}/api/v2/organizations
+    method: GET
+    user: "admin"
+    password: "{{ aap_password }}"
+    force_basic_auth: yes
+    validate_certs: false
+    status_code: 200
+  register: api_orgs
+
+
+- name: set the default organization
+  set_fact:
+    default_org: "{{ item }}"
+  with_items: "{{ api_orgs.json.results }}"
+  when: item.name == "Default"
+
+- name: debug default_org
+  debug:
+    var: default_org.id
+
+- name: Create rhdh application
+  ansible.builtin.uri:
+    url: https://controller-aap.{{ OCP_BASE }}/api/v2/applications/
+    method: POST
+    user: "admin"
+    password: "{{ aap_password }}"
+    force_basic_auth: yes
+    validate_certs: false
+    body_format: json
+    headers:
+      Content-Type: "application/json"
+    body: |
+      {
+        "name": "rhdh",
+        "description": "Red Hat Developer Hub",
+        "organization": {{ default_org.id | int }},
+        "client_type": "public",
+        "authorization_grant_type": "password"
+      }
+    status_code: 201
+  register: api_applications
+
+- name: Debug result
+  debug:
+    var: api_applications
+
+# create a new token 
+- name: Create new token
+  ansible.builtin.uri:
+
+    url: https://controller-aap.{{ OCP_BASE }}/api/v2/applications/{{ api_applications.json.id }}/tokens/
+    method: POST
+    user: "admin"
+    password: "{{ aap_password }}"
+    force_basic_auth: yes
+    validate_certs: false
+    body_format: json
+    headers:
+      Content-Type: "application/json"
+    body: |
+      {
+        "application": "rhdh",
+        "description": "Red Hat Developer Hub token",
+        "scope": "write"
+      }
+    status_code: 201
+  register: aap_token
+
+# create a secret using the token value
+- name: Debug result
+  debug:
+    var: aap_token
+
+- name: Set b64encoded token
+  set_fact:
+    b64token: '{{ aap_token.json.token | b64encode }}'
+
+- name: Set hostname
+  set_fact:
+    aaphostname: 'aap_controller.{{ OCP_BASE }}' 
+
+- name: Set b64encodedhostname
+  set_fact:
+    b64hostname: '{{ aaphostname | b64encode}}'
+
+- name: Install aap token secrets
+  kubernetes.core.k8s:
+    state: present
+    resource_definition: "{{ lookup('template', 'aaptoken.yaml.j2') }}"

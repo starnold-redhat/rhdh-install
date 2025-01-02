@@ -1,0 +1,21 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: ${{ values.system }}-el-event-listener
+  namespace: ${{ values.system }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  labels:
+    app.kubernetes.io/managed-by: EventListener
+    app.kubernetes.io/part-of: Triggers
+    eventlistener: ${{ values.system }}-event-listener
+  
+spec:
+  host: ${{ values.system }}-el-event-listener.apps.cluster-jmkx4.jmkx4.sandbox109.opentlc.com
+  to:
+    kind: Service
+    name: el-${{ values.system }}-event-listener
+    weight: 100
+  port:
+    targetPort: http-listener
+  wildcardPolicy: None

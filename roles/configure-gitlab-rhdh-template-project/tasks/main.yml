@@ -55,6 +55,7 @@
   ansible.builtin.shell: |
     git config --global user.name "user1 GitLab"
     git config --global user.email "user1@demo.redhat.com"
+    git config --global user.password "Developerhub123!"
     git clone 'https://gitlab-gitlab.{{ OCP_BASE }}/rhdh/software-templates.git'
     cd software-templates
     git switch --force-create main
@@ -80,6 +81,30 @@
     path: software-templates/ansible-templates/playbooks.yaml
     regexp: 'gitlab-gitlab.OCP_BASE'
     replace: 'gitlab-gitlab.{{ OCP_BASE }}'
+
+- name: Replace gitlab-gitlab.OCP_BASE
+  ansible.builtin.replace:
+    path: software-templates/gitops/ansible-playbook/${{  '{{' }}values.system{{  '}}' }}-pipeline.yaml
+    regexp: 'gitlab-gitlab.OCP_BASE'
+    replace: 'gitlab-gitlab.{{ OCP_BASE }}'
+
+- name: Replace OCP_BASE in webhook job
+  ansible.builtin.replace:
+    path: software-templates/gitops/ansible-playbook/${{  '{{' }}values.system{{  '}}' }}-create-webhook-job.yaml
+    regexp: 'OCP_BASE'
+    replace: '{{ OCP_BASE }}'
+
+- name: Replace OCP_BASE in aap template
+  ansible.builtin.replace:
+    path: software-templates/gitops/ansible-playbook/${{  '{{' }}values.system{{  '}}' }}-aap-project.yaml
+    regexp: 'OCP_BASE'
+    replace: '{{ OCP_BASE }}'
+
+- name: Replace GIT_PAT in webhook job
+  ansible.builtin.replace:
+    path: software-templates/gitops/ansible-playbook/${{  '{{' }}values.system{{  '}}' }}-create-webhook-job.yaml
+    regexp: 'GITLAB_PAT_VALUE'
+    replace: '{{ gitlab_pat }}'
   
 # run some shell to add, commit and push
 - name: Git commit and push

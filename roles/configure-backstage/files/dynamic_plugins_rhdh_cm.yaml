@@ -8,7 +8,7 @@ data:
     includes:
       - dynamic-plugins.default.yaml
     plugins:
-      - package: ./dynamic-plugins/dist/janus-idp-backstage-plugin-keycloak-backend-dynamic
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-catalog-backend-module-keycloak-dynamic
         disabled: false
         pluginConfig: {}
       - package: ./dynamic-plugins/dist/backstage-plugin-catalog-backend-module-github-dynamic
@@ -18,6 +18,30 @@ data:
         package: ./dynamic-plugins/dist/backstage-plugin-catalog-backend-module-gitlab-dynamic
       - disabled: false
         package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-gitlab-dynamic
+      - disabled: false
+        package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd-backend-dynamic
+      - disabled: false
+        package: ./dynamic-plugins/dist/roadiehq-scaffolder-backend-argocd-dynamic
+      - disabled: false
+        package: ./dynamic-plugins/dist/backstage-community-plugin-redhat-argocd
+      - disabled: true
+        package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd
+      - disabled: false
+        package: ./dynamic-plugins/dist/backstage-community-plugin-tekton
+        pluginConfig:
+          dynamicPlugins:
+            frontend:
+              janus-idp.backstage-plugin-tekton:
+                mountPoints:
+                - config:
+                    if:
+                      allOf:
+                      - isTektonCIAvailable
+                    layout:
+                      gridColumn: 1 / -1
+                      gridRowStart: 1
+                  importName: TektonCI
+                  mountPoint: entity.page.ci/cards
       - disabled: false
         package: http://plugin-registry.plugin-registries:8080/ansible-plugin-backstage-rhaap-1.1.0.tgz
         integrity: sha512-vjlQ9hLDdHwY67E6S3gDQgXBsB/yO5GNuZQltFVxHKY1BGlwGvgSAhoejyN6mgpydGgJlXtM0hFL0vJ9pb6UCQ==

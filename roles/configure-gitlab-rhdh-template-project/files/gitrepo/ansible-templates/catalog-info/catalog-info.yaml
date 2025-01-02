@@ -6,7 +6,11 @@ kind: ${{ values.entityKind }}
 kind: Component
 {%- endif %}
 metadata:
-  name: ${{ values.collectionGroup }}.${{ values.collectionName }}
+  {%- if values.applicationType == "playbook-project" %}
+  name: ${{ values.system }}.playbook
+  {%- elif values.applicationType == "collection-project" %}
+  name: ${{ values.collectionGroup }}.${{values.collectionName}}
+  {%- endif %}
   {%- if values.title %}
   title: ${{ values.title }}
   {%- endif %}
@@ -22,13 +26,7 @@ metadata:
     {%- endif %}
   annotations:
     backstage.io/techdocs-ref: dir:.
-    {%- if values.sourceControl == "gitlab.com" %}
     gitlab.com/project-slug: ${{ values.repoUrl | projectSlug }}
-    {%- elif values.sourceControl == "github.com" %}
-    github.com/project-slug: ${{ values.repoUrl | projectSlug }}
-    {%- elif values.sourceControl == "dev.azure.com" %}
-    dev.azure.com/project-repo: ${{ values.repoUrl | projectSlug }}
-    {%- endif %}
   {%- if values.devSpacesBaseUrl %}
   links:
     - url: ${{ values.devSpacesBaseUrl }}
@@ -37,9 +35,6 @@ metadata:
   {%- endif %}
 spec:
   type: ${{ values.applicationType }}
-  {%- if values.system %}
-  system: ${{ values.system }}
-  {%- endif %}
   {%- if values.lifecycle %}
   lifecycle: ${{ values.lifecycle }}
   {%- else %}

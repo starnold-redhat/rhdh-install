@@ -1,0 +1,11 @@
+OCP_BASE: apps.cluster-4j4cb.4j4cb.sandbox2851.opentlc.com
+aap_validate_certs: false
+aap_username: admin
+aap_hostname: controller-aap.{{ OCP_BASE }}
+redhat_subscription_username: "starnold-demo"
+redhat_subscription_password: "put rh console password in here"
+controller_license:
+  use_lookup: true
+  filters:
+    product_name: "Red Hat Ansible Automation Platform"
+    support_level: "Standard"

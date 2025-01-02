@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: ${{ values.system }}-ansible-lint
+  namespace: ${{ values.system }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  description: |
+    A Tekton Task to run ansible-lint to validate Ansible playbooks and roles.
+  params:
+    - default: .
+      description: |
+        The directory or file containing Ansible files to lint.
+        Example: `playbooks/`, `roles/my_role`, or a specific playbook like `site.yml`.
+      name: target
+      type: string
+  steps:
+    - computeResources: {}
+      image: 'registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest'
+      name: lint
+      script: |
+        #!/usr/bin/env sh
+        set -e
+        echo "Running ansible-lint on target: $(params.target)"
+        ansible-lint $(params.target)

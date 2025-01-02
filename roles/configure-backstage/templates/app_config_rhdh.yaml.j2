@@ -15,6 +15,14 @@ data:
     app:
       title: Red Hat Developer Hub
       baseUrl: https://backstage-developer-hub-backstage.{{ OCP_BASE }}
+    argocd:
+      appLocatorMethods:
+      - instances:
+        - name: main
+          password: {{ gitops_password }}
+          url: https://openshift-gitops-server-openshift-gitops.{{ OCP_BASE }}
+          username: admin
+        type: config
     backend:
       auth:
         keys:

@@ -1,0 +1,38 @@
+---
+# tasks file for configure-aap-controller
+- name: Install automation controller
+  kubernetes.core.k8s:
+    state: present
+    src: automation-controller.yaml
+
+- name: Wait for aap operator to install
+  kubernetes.core.k8s_info:
+    namespace: aap
+    kind: pod
+    label_selectors:
+      - app.kubernetes.io/name=controller-web
+    wait: true
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: true
+
+- name: Retrieve controller password 
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: controller-admin-password
+    namespace: aap
+  register: r_aap_password
+
+- name: Decode aap password
+  set_fact:
+    aap_password: '{{ r_aap_password.resources[0].data.password | b64decode }}'
+
+#- name: Decode aap password
+#  set_fact:
+#    aap_hostname: 'controller-aap.{{ OCP_BASE }}'
+
+#- name: Debug aap_hostname
+#  debug:
+#    var: aap_hostname

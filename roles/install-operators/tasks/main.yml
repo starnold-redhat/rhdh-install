@@ -85,6 +85,15 @@
       kind: Namespace
       metadata:
         name: aap
+
+- name: Create a aap namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: ansible-gitops
         
 
 - name: Install aap operator
@@ -142,8 +151,36 @@
       metadata:
         name: openshift-gitops-operator
         
-
 - name: Install Openshift Gitops operator
   kubernetes.core.k8s:
     state: present
     src: gitops_operator.yaml
+
+- name: Wait for gitops operator to install
+  kubernetes.core.k8s_info:
+    namespace: openshift-gitops
+    kind: pod
+    label_selectors:
+      - app.kubernetes.io/name = openshift-gitops-application-controller
+    wait: true
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: true
+
+- name: Give Argo access to create mutatingwebhooks
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: cluster-admin-argo
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - kind: ServiceAccount
+        name: openshift-gitops-argocd-application-controller
+        namespace: openshift-gitops

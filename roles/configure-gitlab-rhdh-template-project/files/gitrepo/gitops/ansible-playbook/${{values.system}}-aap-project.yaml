@@ -1,0 +1,12 @@
+apiVersion: tower.ansible.com/v1alpha1
+kind: AnsibleProject
+metadata:
+  
+  name: ${{values.system}}
+  namespace: ${{values.system}}
+spec:
+  connection_secret: aaptoken
+  name: ${{values.system}}
+  organization: Default
+  repo: 'https://gitlab-gitlab.OCP_BASE/development/${{values.system}}.git'
+  scm_type: git

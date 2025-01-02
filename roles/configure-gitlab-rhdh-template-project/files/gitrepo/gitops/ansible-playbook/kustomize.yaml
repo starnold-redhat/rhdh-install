@@ -1,0 +1,8 @@
+resources:
+- ${{values.system}}-ansible-lint.yaml
+- ${{values.system}}-el.yaml
+- ${{values.system}}-pipeline.yaml
+- ${{values.system}}-route.yaml
+- ${{values.system}}-triggertemplate.yaml
+- ${{values.system}}-create-webhook-job.yaml
+- ${{values.system}}-aap-project.yaml

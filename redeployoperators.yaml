@@ -1,0 +1,7 @@
+---
+- name: Update ansible software template
+  hosts: localhost 
+  connection: local
+
+  roles:
+    - install-operators

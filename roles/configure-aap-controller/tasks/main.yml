@@ -145,7 +145,7 @@
 
 - name: Set hostname
   set_fact:
-    aaphostname: 'aap_controller.{{ OCP_BASE }}' 
+    aaphostname: 'controller-aap.{{ OCP_BASE }}' 
 
 - name: Set b64encodedhostname
   set_fact:

@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default  # ArgoCD project; can be customized
   source:
-    repoURL: 'https://gitlab-gitlab.apps.cluster-jmkx4.jmkx4.sandbox109.opentlc.com/development/${{ values.system }}-gitops.git'  # Replace with your repo URL
+    repoURL: 'https://gitlab-gitlab.OCP_BASE/development/${{ values.system }}-gitops.git'  # Replace with your repo URL
     targetRevision: HEAD  # Branch, tag, or commit to deploy
     path: '.'  # Path within the repository to the Kubernetes manifests
   destination:

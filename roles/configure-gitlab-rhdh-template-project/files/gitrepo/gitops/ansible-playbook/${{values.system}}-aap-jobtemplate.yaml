@@ -1,0 +1,11 @@
+apiVersion: tower.ansible.com/v1alpha1
+kind: JobTemplate
+metadata:
+  name: ${{values.system}}-defaultjob
+  namespace: aap
+spec:
+  connection_secret: aaptoken
+  inventory: 'Demo Inventory'
+  name: ${{values.system}}-defaultjob
+  playbook: 'linux_playbook.yml'
+  project: '${{values.system}}'

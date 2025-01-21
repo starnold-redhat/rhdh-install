@@ -3,7 +3,7 @@ kind: AnsibleProject
 metadata:
   
   name: ${{values.system}}
-  namespace: ${{values.system}}
+  namespace: aap
 spec:
   connection_secret: aaptoken
   name: ${{values.system}}

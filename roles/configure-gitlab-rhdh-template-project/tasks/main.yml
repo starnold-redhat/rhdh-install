@@ -100,6 +100,12 @@
     regexp: 'OCP_BASE'
     replace: '{{ OCP_BASE }}'
 
+- name: Replace OCP_BASE in bootstrap template
+  ansible.builtin.replace:
+    path: software-templates/gitops/ansible-playbook/bootstrap/${{  '{{' }}values.system{{  '}}' }}-application.yaml
+    regexp: 'OCP_BASE'
+    replace: '{{ OCP_BASE }}'
+
 - name: Replace GIT_PAT in webhook job
   ansible.builtin.replace:
     path: software-templates/gitops/ansible-playbook/${{  '{{' }}values.system{{  '}}' }}-create-webhook-job.yaml

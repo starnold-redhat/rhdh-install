@@ -65,7 +65,7 @@ spec:
         values:
           system: ${{ parameters.repoName }}
           gitlab_project_id: ${{ steps.publish.output.projectId }}
-        targetPath: ./tenant-src
+
 
     - id: catalogTemplate
       name: Generating the Catalog Info Component
@@ -73,7 +73,7 @@ spec:
       input:
         url: ./catalog-info/
         values:
-          repoUrl:   ${{ steps.ansible.output.repoUrl }}
+          repoUrl:   gitlab-gitlab.OCP_BASE?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}
           owner:  ${{ parameters.owner }}
           system:  ${{ parameters.repoName }}
           applicationType: playbook-project
@@ -81,7 +81,7 @@ spec:
           collectionGroup:  ${{ parameters.collectionGroup }}
           collectionName:  ${{ parameters.collectionName }}
           sourceControl: gitlab-gitlab.OCP_BASE
-          devSpacesBaseUrl:   ${{ steps.ansible.output.devSpacesBaseUrl }}
+          devSpacesBaseUrl:   "https://devspaces.OCP_BASE#https://gitlab-gitlab.OCP_BASE/${{ parameters.repoOwner }}/${{ parameters.repoName }}"
 
     - id: publish
       name: Publish
@@ -90,16 +90,16 @@ spec:
         allowedHosts:
           - gitlab-gitlab.OCP_BASE
         description:  ${{ parameters.description }}
-        repoUrl:   "${{ steps.ansible.output.repoUrl }}"
+        repoUrl:   "gitlab-gitlab.OCP_BASE?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}"
         repoVisibility: 'public'
         defaultBranch: main
-        sourcePath: ./tenant-src
+
 
     - id: log publish output
       name: Parse Repo URL
       action: debug:log
       input:
-        extra:   ${{ steps.publish.output }}
+        message: "${{ steps['publish'].output }}
         
     - id: register
       name: Register
@@ -126,7 +126,7 @@ spec:
         allowedHosts:
           - gitlab-gitlab.OCP_BASE
         description:  ${{ parameters.description }}
-        repoUrl:   "${{ steps.ansible.output.repoUrl }}-gitops"
+        repoUrl:   "gitlab-gitlab.OCP_BASE?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}-gitops"
         repoVisibility: 'public'
         defaultBranch: main
         sourcePath: ./tenant-gitops

@@ -1,6 +1,6 @@
 schemaVersion: 2.2.2
 metadata:
-  name: testns.testcoll-4dca7bca
+  name: ${{values.system}}
 components:
   - name: tooling-container
     container:

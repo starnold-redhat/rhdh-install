@@ -19,7 +19,7 @@ data:
       appLocatorMethods:
       - instances:
         - name: main
-          password: {{ gitops_password }}
+          password: "$(GITOPS_ADMIN_PASSWORD)
           url: https://openshift-gitops-server-openshift-gitops.{{ OCP_BASE }}
           username: admin
         type: config

@@ -82,6 +82,12 @@
     regexp: 'gitlab-gitlab.OCP_BASE'
     replace: 'gitlab-gitlab.{{ OCP_BASE }}'
 
+- name: Replace devspaces.OCP_BASE
+  ansible.builtin.replace:
+    path: software-templates/ansible-templates/playbooks.yaml
+    regexp: 'devspaces.OCP_BASE'
+    replace: 'devspaces.{{ OCP_BASE }}'
+
 - name: Replace gitlab-gitlab.OCP_BASE
   ansible.builtin.replace:
     path: software-templates/gitops/ansible-playbook/${{  '{{' }}values.system{{  '}}' }}-pipeline.yaml

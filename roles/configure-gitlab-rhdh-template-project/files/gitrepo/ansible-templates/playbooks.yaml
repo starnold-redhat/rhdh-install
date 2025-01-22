@@ -93,13 +93,6 @@ spec:
         repoUrl:   "gitlab-gitlab.OCP_BASE?owner=${{ parameters.repoOwner }}&repo=${{ parameters.repoName }}"
         repoVisibility: 'public'
         defaultBranch: main
-
-
-    - id: log publish output
-      name: Parse Repo URL
-      action: debug:log
-      input:
-        message: "${{ steps['publish'].output }}
         
     - id: register
       name: Register

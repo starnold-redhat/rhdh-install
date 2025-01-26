@@ -1,10 +1,10 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: create-gitlab-webhook
-  namespace: ${{ values.system }}
+  name: create-gitlab-webhook-${{values.system}}
+  namespace: gitlab
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   template:
     spec:
@@ -36,7 +36,10 @@ spec:
         - name: GITLAB_PROJECT_ID
           value: "${{values.gitlab_project_id}}" # Replace with your project ID
         - name: GITLAB_TOKEN
-          value: GITLAB_PAT_VALUE
+          valueFrom:
+            secretKeyRef:
+              name: root-user-personal-token
+              key: token
         - name: WEBHOOK_URL
           value: "http://${{values.system}}-el-event-listener.OCP_BASE"
       restartPolicy: Never

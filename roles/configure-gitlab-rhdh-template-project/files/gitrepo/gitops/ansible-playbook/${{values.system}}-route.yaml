@@ -11,7 +11,7 @@ metadata:
     eventlistener: ${{ values.system }}-event-listener
   
 spec:
-  host: ${{ values.system }}-el-event-listener.apps.cluster-jmkx4.jmkx4.sandbox109.opentlc.com
+  host: ${{values.system}}-el-event-listener.OCP_BASE
   to:
     kind: Service
     name: el-${{ values.system }}-event-listener

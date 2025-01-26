@@ -7,7 +7,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "3"
 spec:
   tasks:
-    - name: git-clone-1-16-0
+    - name: git-clone
       params:
         - name: url
           value: 'https://gitlab-gitlab.OCP_BASE/development/${{ values.system }}.git'
@@ -42,8 +42,8 @@ spec:
         - name: userHome
           value: /home/git
       taskRef:
-        kind: ClusterTask
-        name: git-clone-1-16-0
+        kind: Task
+        name: git-clone
       workspaces:
         - name: output
           workspace: src
@@ -52,7 +52,7 @@ spec:
         - name: target
           value: .
       runAfter:
-        - git-clone-1-16-0
+        - git-clone
       taskRef:
         kind: Task
         name: ${{ values.system }}-ansible-lint

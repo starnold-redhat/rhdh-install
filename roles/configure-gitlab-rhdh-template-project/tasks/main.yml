@@ -100,6 +100,12 @@
     regexp: 'OCP_BASE'
     replace: '{{ OCP_BASE }}'
 
+- name: Replace OCP_BASE in route
+  ansible.builtin.replace:
+    path: software-templates/gitops/ansible-playbook/${{  '{{' }}values.system{{  '}}' }}-route.yaml
+    regexp: 'OCP_BASE'
+    replace: '{{ OCP_BASE }}'
+
 - name: Replace OCP_BASE in aap template
   ansible.builtin.replace:
     path: software-templates/gitops/ansible-playbook/${{  '{{' }}values.system{{  '}}' }}-aap-project.yaml

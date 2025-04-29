@@ -6,7 +6,9 @@ oc delete keycloakclient openshift -n rhsso
 oc delete keycloakrealm backstage -n rhsso 
 oc delete keycloakrealm openshift -n rhsso 
 oc delete keycloak rhsso-instance -n rhsso 
-oc delete automationcontroller controller -n aap
+oc delete automationplatform aap -n aap
 oc delete project rhsso
 oc delete project gitlab
 oc delete project backstage
+oc delete project minio
+oc delete prohect aap

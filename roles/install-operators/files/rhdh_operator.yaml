@@ -3,7 +3,7 @@ apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   annotations:
-    olm.providedAPIs: Backstage.v1alpha1.rhdh.redhat.com,Backstage.v1alpha2.rhdh.redhat.com
+    olm.providedAPIs: Backstage.v1alpha1.rhdh.redhat.com,Backstage.v1alpha2.rhdh.redhat.com,Backstage.v1alpha3.rhdh.redhat.com
   name: rhdh-operator
   namespace: rhdh-operator
 spec:
@@ -22,4 +22,4 @@ spec:
   name: rhdh
   source: redhat-operators
   sourceNamespace: openshift-marketplace
-  startingCSV: rhdh-operator.v1.3.1
+  startingCSV: rhdh-operator.v1.5.1

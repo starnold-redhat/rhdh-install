@@ -15,5 +15,4 @@
   roles:
     - install-aap-controller
     - {role: infra.aap_configuration.controller_license, ignore_errors: yes }
-    - configure-aap-controller
-    
+ #   - configure-aap-controller

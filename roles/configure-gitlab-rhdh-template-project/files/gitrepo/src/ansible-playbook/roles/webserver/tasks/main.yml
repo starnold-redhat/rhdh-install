@@ -1,0 +1,24 @@
+# tasks for webserver
+- name: Ensure apache is at the present version
+  ansible.builtin.dnf:
+    name: httpd
+    state: present
+
+- name: Start and enable httpd
+  ansible.builtin.service:
+    name: httpd
+    state: started
+    enabled: true
+
+- name: ensure html directory exists
+  file:
+    path: /var/www/html
+    recurse: true
+    state: directory
+
+- name: Deploy index.html
+  ansible.builtin.copy:
+    content: "<h1>Welcome to the Web Server deployed and test with Molecule</h1>"
+    dest: /var/www/html/index.html
+    mode: '0644'
+

@@ -30,7 +30,7 @@
   debug:
     var: rhdh_group
 
-- name: create software templates project
+- name: Create software templates project
   ignore_errors: true
   ansible.builtin.uri:
     url: https://gitlab-gitlab.{{ OCP_BASE }}/api/v4/projects?
@@ -49,14 +49,12 @@
   ansible.builtin.file:
     state: absent
     path: '{{ playbook_dir }}/software-templates'
+    force: true
 
-# clone the project into the current folder
-- name: Git checkout
+
+- name: Checkout git repo and create main branch
   ansible.builtin.shell: |
-    git config --global user.name "user1 GitLab"
-    git config --global user.email "user1@demo.redhat.com"
-    git config --global user.password "Developerhub123!"
-    git clone 'https://gitlab-gitlab.{{ OCP_BASE }}/rhdh/software-templates.git'
+    git clone https://root:{{ root_token }}@gitlab-gitlab.{{ OCP_BASE }}/rhdh/software-templates.git
     cd software-templates
     git switch --force-create main
 

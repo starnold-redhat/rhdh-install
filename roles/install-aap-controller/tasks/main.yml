@@ -3,16 +3,16 @@
 - name: Install automation controller
   kubernetes.core.k8s:
     state: present
-    src: automation-controller.yaml
+    src: automation-platform.yaml
 
-- name: Wait for aap operator to install
+- name: Wait for aap operator to install (aap-controller-task)
   kubernetes.core.k8s_info:
     namespace: aap
     kind: pod
     label_selectors:
-      - app.kubernetes.io/name=controller-web
+      - app.kubernetes.io/name=aap-controller-task
     wait: true
-    wait_timeout: 300
+    wait_timeout: 600
     wait_condition:
       type: Ready
       status: true
@@ -21,7 +21,7 @@
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Secret
-    name: controller-admin-password
+    name: aap-admin-password
     namespace: aap
   register: r_aap_password
 

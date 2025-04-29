@@ -1,0 +1,24 @@
+---
+- name: Verify HTTPD is serving the expected message
+  hosts: all
+  gather_facts: false
+  tasks:
+
+    - name: Wait for HTTPD to be available
+      ansible.builtin.wait_for:
+        port: 80
+        delay: 3
+        timeout: 30
+
+    - name: Fetch HTTPD default page
+      ansible.builtin.uri:
+        url: http://molecule-ubi8-python
+        return_content: true
+      register: http_response
+
+    - name: Assert that the message is present in the response
+      ansible.builtin.assert:
+        that:
+          - "'Welcome to the Web Server deployed and tested with Molecule'"
+        fail_msg: "Expected message not found in HTTP response"
+        success_msg: "Expected message found successfully"

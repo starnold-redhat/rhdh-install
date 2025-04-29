@@ -1,0 +1,6 @@
+---
+# Example Ansible requirements.yaml
+roles:
+
+collections:
+  - kubernetes.core 

@@ -1,0 +1,36 @@
+---
+driver:
+  name: default
+platforms:
+  - name: molecule-ubi8-python
+    image: registry.redhat.io/ubi9/ubi-init
+    workingDir: '/tmp'
+    groups:
+      - webserver
+    ansible_host: molecule-ubi8-python
+    ansible_connection: kubectl
+    ansible_kubectl_namespace: ${{ values.system }}
+provisioner:
+  name: ansible
+  env:
+    PATH: /home/podman/.local/bin:$PATH
+  inventory:
+    localhost:
+        kubectl_path: /home/podman/.local/bin/kubectl
+    host_vars:
+      molecule-ubi8-python:
+        ansible_host: molecule-ubi8-python
+        ansible_connection: kubectl
+        ansible_kubectl_namespace: ${{ values.system }}
+verifier:
+  name: ansible
+scenario:
+  name: default
+  test_sequence:
+    #- dependency
+    - syntax
+    #- lint
+    - create
+    - converge
+    - idempotence
+    - verify

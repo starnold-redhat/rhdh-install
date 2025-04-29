@@ -1,4 +1,3 @@
-#SPDX-License-Identifier: MIT-0
 ---
 # delete the aap token secret
 - name: Delete the aaptoken Kubernetes Secret
@@ -6,28 +5,28 @@
     state: absent
     api_version: v1
     kind: Secret
-    namespace: aap  
-    name: aaptoken 
+    namespace: aap
+    name: aaptoken
 
 # delete the aap token in aap
 - name: Get any existing tokens
   ansible.builtin.uri:
-    url: https://controller-aap.{{ OCP_BASE }}/api/v2/tokens
+    url: https://{{ aap_hostname }}/api/controller/v2/tokens
     method: GET
     user: "admin"
     password: "{{ aap_password }}"
-    force_basic_auth: yes
+    force_basic_auth: true
     validate_certs: false
     status_code: 200
   register: api_tokens
 
 - name: Delete the token
   ansible.builtin.uri:
-    url: https://controller-aap.{{ OCP_BASE }}/api/v2/tokens/{{item.id}}/
+    url: https://{{ aap_hostname }}/api/controller/v2/tokens/{{ item.id }}/
     method: DELETE
     user: "admin"
     password: "{{ aap_password }}"
-    force_basic_auth: yes
+    force_basic_auth: true
     validate_certs: false
     status_code: 204
   loop: "{{ api_tokens.json.results }}"
@@ -37,22 +36,22 @@
 # Get the aap application
 - name: Get rhdh applications
   ansible.builtin.uri:
-    url: https://controller-aap.{{ OCP_BASE }}/api/v2/applications
+    url: https://{{ aap_hostname }}/api/controller/v2/applications
     method: GET
     user: "admin"
     password: "{{ aap_password }}"
-    force_basic_auth: yes
+    force_basic_auth: true
     validate_certs: false
     status_code: 200
   register: api_applications
 
 - name: Delete the rhdh application
   ansible.builtin.uri:
-    url: https://controller-aap.{{ OCP_BASE }}/api/v2/applications/{{item.id}}/
+    url: https://{{ aap_hostname }}/api/controller/v2/applications/{{ item.id }}/
     method: DELETE
     user: "admin"
     password: "{{ aap_password }}"
-    force_basic_auth: yes
+    force_basic_auth: true
     validate_certs: false
     status_code: 204
   loop: "{{ api_applications.json.results }}"
@@ -66,33 +65,33 @@
 # create a new application if secret doesnt exist
 - name: Get the organization
   ansible.builtin.uri:
-    url: https://controller-aap.{{ OCP_BASE }}/api/v2/organizations
+    url: https://{{ aap_hostname }}/api/controller/v2/organizations
     method: GET
     user: "admin"
     password: "{{ aap_password }}"
-    force_basic_auth: yes
+    force_basic_auth: true
     validate_certs: false
     status_code: 200
   register: api_orgs
 
 
-- name: set the default organization
-  set_fact:
+- name: Set the default organization
+  ansible.builtin.set_fact:
     default_org: "{{ item }}"
   with_items: "{{ api_orgs.json.results }}"
   when: item.name == "Default"
 
-- name: debug default_org
-  debug:
+- name: Debug default_org
+  ansible.builtin.debug:
     var: default_org.id
 
 - name: Create rhdh application
   ansible.builtin.uri:
-    url: https://controller-aap.{{ OCP_BASE }}/api/v2/applications/
+    url: https://{{ aap_hostname }}/api/controller/v2/applications/
     method: POST
     user: "admin"
     password: "{{ aap_password }}"
-    force_basic_auth: yes
+    force_basic_auth: true
     validate_certs: false
     body_format: json
     headers:
@@ -109,18 +108,17 @@
   register: api_applications
 
 - name: Debug result
-  debug:
+  ansible.builtin.debug:
     var: api_applications
 
 # create a new token 
 - name: Create new token
   ansible.builtin.uri:
-
-    url: https://controller-aap.{{ OCP_BASE }}/api/v2/applications/{{ api_applications.json.id }}/tokens/
+    url: https://{{ aap_hostname }}/api/controller/v2/applications/{{ api_applications.json.id }}/tokens/
     method: POST
     user: "admin"
     password: "{{ aap_password }}"
-    force_basic_auth: yes
+    force_basic_auth: true
     validate_certs: false
     body_format: json
     headers:
@@ -136,19 +134,19 @@
 
 # create a secret using the token value
 - name: Debug result
-  debug:
+  ansible.builtin.debug:
     var: aap_token
 
 - name: Set b64encoded token
-  set_fact:
+  ansible.builtin.set_fact:
     b64token: '{{ aap_token.json.token | b64encode }}'
 
 - name: Set hostname
-  set_fact:
-    aaphostname: 'controller-aap.{{ OCP_BASE }}' 
+  ansible.builtin.set_fact:
+    aaphostname: 'controller-aap.{{ OCP_BASE }}'
 
 - name: Set b64encodedhostname
-  set_fact:
+  ansible.builtin.set_fact:
     b64hostname: '{{ aaphostname | b64encode}}'
 
 - name: Install aap token secrets

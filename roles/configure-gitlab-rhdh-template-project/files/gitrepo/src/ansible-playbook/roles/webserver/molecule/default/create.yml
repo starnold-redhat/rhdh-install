@@ -1,0 +1,26 @@
+---
+- name: Create
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  # no_log: "{{ molecule_no_log }}"
+  tasks:
+    # TODO: Developer must implement and populate 'server' variable
+    - name: Create molecule instance as containers
+      kubernetes.core.k8s:
+        state: present
+        resource_definition: "{{ lookup('template', 'deployment.yaml.j2') }}"
+      register: server
+      with_items: "{{ molecule_yml.platforms }}"
+
+    - name: Wait for test pod to be ready
+      kubernetes.core.k8s_info:
+        namespace: ${{ values.system }}
+        kind: pod
+        label_selectors:
+          - app=molecule-test-container
+        wait: true
+        wait_timeout: 300
+        wait_condition:
+          type: Ready
+          status: true

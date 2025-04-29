@@ -1,0 +1,9 @@
+# .ansible-lint
+skip_list:
+  - yaml[line-length]
+  - no-changed-when
+
+exclude_paths:
+  - molecule/default/tests/
+  - files/
+verbosity: 1

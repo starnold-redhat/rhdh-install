@@ -1,0 +1,35 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: ${{ values.system }}-ansible-molecule
+  namespace: ${{ values.system }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  description: |
+    A Tekton Task to run ansible-molecule to validate Ansible playbooks and roles.
+  params:
+    - default: .
+      description: |
+        The directory or file containing a molecule folder.
+        Example: `roles/webserver`.
+      name: target
+      type: string
+  steps:
+    - computeResources: {}
+      image: 'registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest'
+      name: lint
+      script: |
+        #!/usr/bin/env sh
+        set -e
+        echo "Running molecule on target: $(params.target)"
+        cd $(workspaces.input.path)
+        cd $(params.target)
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl; mkdir -p ~/.local/bin;mv ./kubectl ~/.local/bin/kubectl
+        pip3 install kubernetes
+        ansible-galaxy install -r requirements.yaml 
+        molecule test
+  workspaces:
+    - description: The git repo will be cloned onto the volume backing this Workspace.
+      name: input

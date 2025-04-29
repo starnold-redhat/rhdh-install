@@ -1,0 +1,52 @@
+---
+- name: Create a minio namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: minio
+
+
+- name: Install mino secrets
+  kubernetes.core.k8s:
+    state: present
+    src: minio-secret.yaml
+
+- name: Install minio pvc
+  kubernetes.core.k8s:
+    state: present
+    src: minio-pvc.yaml
+
+- name: Install minio deployment
+  kubernetes.core.k8s:
+    state: present
+    src: minio-deployment.yaml
+
+- name: Install minio service
+  kubernetes.core.k8s:
+    state: present
+    src: minio-service.yaml
+
+- name: Wait for minio to start
+  kubernetes.core.k8s_info:
+    namespace: minio
+    kind: pod
+    label_selectors:
+      - app = minio
+    wait: true
+    wait_timeout: 300
+    wait_condition:
+      type: Ready
+      status: true
+
+- name: Create default bucket for backstage
+  kubernetes.core.k8s:
+    state: present
+    src: minio-job-create-bucket.yaml
+
+- name: Install minio route
+  kubernetes.core.k8s:
+    state: present
+    src: minio-routes.yaml

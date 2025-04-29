@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipeline-edit-binding
+  namespace: ${{values.system}}
+subjects:
+  - kind: ServiceAccount
+    name: pipeline
+    namespace: ${{values.system}}
+roleRef:
+  kind: ClusterRole
+  name: edit
+  apiGroup: rbac.authorization.k8s.io

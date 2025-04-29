@@ -43,6 +43,19 @@
     wait_timeout: 300
   register: gitops_secret
 
+- name: Setup k8s service account for rhdh access
+  ansible.builtin.shell: |
+    oc create sa rhdhaccess -n backstage
+    oc adm policy add-cluster-role-to-user cluster-admin -z rhdhaccess
+  
+- name: Setup k8s service account for rhdh access
+  ansible.builtin.shell: |
+    oc create token rhdhaccess -n backstage --duration=$((365*24))h
+  register: rhdhaccess_token_output
+
+- name: Set k8s service account token for rhdh access
+  ansible.builtin.set_fact:
+    rhdhaccess_token: '{{ rhdhaccess_token_output.stdout }}'
 
 - name: Set gitops admin password
   set_fact:

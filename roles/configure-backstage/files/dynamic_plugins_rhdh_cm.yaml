@@ -4,7 +4,7 @@ metadata:
   name: dynamic-plugins-rhdh
   namespace: backstage
 data:
-  dynamic-plugins.yaml: |
+  dynamic-plugins.yaml: |-
     includes:
       - dynamic-plugins.default.yaml
     plugins:
@@ -17,6 +17,12 @@ data:
       - disabled: false
         package: ./dynamic-plugins/dist/backstage-plugin-catalog-backend-module-gitlab-dynamic
       - disabled: false
+        package: ./dynamic-plugins/dist/immobiliarelabs-backstage-plugin-gitlab-backend-dynamic
+      - disabled: false
+        package: ./dynamic-plugins/dist/immobiliarelabs-backstage-plugin-gitlab
+      - disabled: false
+        package: ./dynamic-plugins/dist/backstage-community-plugin-topology
+      - disabled: false
         package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-gitlab-dynamic
       - disabled: false
         package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd-backend-dynamic
@@ -24,14 +30,20 @@ data:
         package: ./dynamic-plugins/dist/roadiehq-scaffolder-backend-argocd-dynamic
       - disabled: false
         package: ./dynamic-plugins/dist/backstage-community-plugin-redhat-argocd
+      - disabled: false
+        package: ./dynamic-plugins/dist/backstage-plugin-kubernetes-backend-dynamic
+      - disabled: false
+        package: ./dynamic-plugins/dist/backstage-plugin-kubernetes
       - disabled: true
         package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd
+      - disabled: false
+        package: ./dynamic-plugins/dist/backstage-plugin-techdocs
       - disabled: false
         package: ./dynamic-plugins/dist/backstage-community-plugin-tekton
         pluginConfig:
           dynamicPlugins:
             frontend:
-              janus-idp.backstage-plugin-tekton:
+              backstage-community.plugin-tekton:
                 mountPoints:
                 - config:
                     if:
@@ -43,8 +55,8 @@ data:
                   importName: TektonCI
                   mountPoint: entity.page.ci/cards
       - disabled: false
-        package: http://plugin-registry.plugin-registries:8080/ansible-plugin-backstage-rhaap-1.1.0.tgz
-        integrity: sha512-vjlQ9hLDdHwY67E6S3gDQgXBsB/yO5GNuZQltFVxHKY1BGlwGvgSAhoejyN6mgpydGgJlXtM0hFL0vJ9pb6UCQ==
+        package: http://plugin-registry.plugin-registries:8080/ansible-plugin-backstage-rhaap-1.2.0.tgz
+        integrity: sha512-g/qXf2AkpTmLWtD+Eay2KpOdOsQVldJY0KoTY3qmOFjr6u7RHbpdVb6I+/Z27eHhWGVEZs3Hrtn9EWX2yWrZDg==
         pluginConfig:
           dynamicPlugins:
             frontend:
@@ -59,8 +71,8 @@ data:
                     text: Ansible
                   path: /ansible
       - disabled: false
-        package: http://plugin-registry.plugin-registries:8080/ansible-plugin-scaffolder-backend-module-backstage-rhaap-1.1.0.tgz
-        integrity: sha512-ndd3uILlkvZ+jrpNsnYjmwkQY/e71EcCYqjnAsAF3CeZ3aZG/FYgvHFQ5OR9sNQHTaQ+ZjCietH9403xHSNZxQ==
+        package: http://plugin-registry.plugin-registries:8080/ansible-plugin-scaffolder-backend-module-backstage-rhaap-1.2.0.tgz
+        integrity: sha512-p5pD8DifaJzXcRjtdjZrvwyeILmoKe+sKwLGkFTpbDqMO+VgHW89TjEosPoRMVtTbpqxUy4eP63d+z9kL90BzQ==
         pluginConfig:
           dynamicPlugins:
             backend:
@@ -69,8 +81,8 @@ data:
                 - importName: createAnsibleContentAction
                   mountPoint: entity.page.overview/cards
       - disabled: false
-        package: http://plugin-registry.plugin-registries:8080/ansible-plugin-backstage-rhaap-backend-1.1.0.tgz
-        integrity: sha512-EaBuyPWVpfsSpuWLYPZzIol3CxTqP39dabQmzDZgoVuyFgq8UA4kXyhyyZLNm0B5C+u0Sa/sksKdhqRi/tDLaw==
+        package: http://plugin-registry.plugin-registries:8080/ansible-plugin-backstage-rhaap-backend-1.2.0.tgz
+        integrity: sha512-eiyY937szwRSlKepDjvm3yfbR192IG2ICAdKPkmo5IGIovQZHJ2uM7mUcLw01YOwTivxvCDi86l0JomJgiLN9w==
         pluginConfig:
           dynamicPlugins:
             backend:

@@ -1,0 +1,6 @@
+---
+- name: Verify My Role
+  hosts: all
+  connection: kubectl
+  roles:
+    - role: steve.httpd

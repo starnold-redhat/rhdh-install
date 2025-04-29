@@ -18,8 +18,6 @@ spec:
         - repoOwner
         - repoName
         - owner
-        - collectionGroup
-        - collectionName
       properties:
         repoOwner:
           title: Source code repository organization name or username
@@ -36,14 +34,6 @@ spec:
           title: Playbook description
           type: string
           description: Describe the playbook and its purpose to help other users understand what to use it for.
-        collectionGroup:
-          title: Playbook project's collection namespace
-          description: The collection namespace in your new playbook repository. For example, “my-new-collection-namespace”.
-          type: string
-        collectionName:
-          title: Playbook project's collection name
-          description: The collection name in your new playbook repository. For example, “my-new-collection-name”.
-          type: string
         owner:
           title: Catalog Owner name
           type: string

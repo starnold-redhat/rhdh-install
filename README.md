@@ -2,13 +2,13 @@
 
 This playbook will setup a demo environment to show the ansible self service demo.  This demo has the following key steps
 
-Log in to developerhub - and instantiate a playbook golden path ( this creates devspaces, test servers, pipelines, and AAP projects etc)
-Go to dev spaces to make a change - and run molecule tests - check in code
-Pipelines run to lint and test the playbook
-Run the playbook from the development project in AAP against a container masquerading as a server
-Promote the playbook to production, and rerun 
-At this point - you've got a live playbook, which has been tested, and done it in about 30 minutes end to end.
-[Optionally] make another change and see it work in the dev project, show the prod project is still running the old playbook, then promote the new change to prod.
+1. Log in to developerhub - and instantiate a playbook golden path ( this creates devspaces, test servers, pipelines, and AAP projects etc)
+2. Go to dev spaces to make a change - and run molecule tests - check in code
+3. Pipelines run to lint and test the playbook
+4. Run the playbook from the development project in AAP against a container masquerading as a server
+5. Promote the playbook to production, and rerun 
+6. At this point - you've got a live playbook, which has been tested, and done it in about 30 minutes end to end.
+7. [Optionally] make another change and see it work in the dev project, show the prod project is still running the old playbook, then promote the new change to prod.
 
 
 ## Setup the demo

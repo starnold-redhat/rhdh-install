@@ -18,5 +18,5 @@ This playbook will setup a demo environment to show the ansible self service dem
 3. Clone this repo
 3. Download a manifest from redhat with an AAP subscription in it.  Store this as manifest_aap.zip in the root directory
 4. Copy the example_variables.yaml to variables.yaml, and update with any specific information to your environment
-5. Run the playbook - with ```ansiblansible-playbook bootstrap-backstage-playbook.yaml -e @variables.yaml```
+5. Run the playbook - with ```ansible-playbook bootstrap-backstage-playbook.yaml -e @variables.yaml```
 

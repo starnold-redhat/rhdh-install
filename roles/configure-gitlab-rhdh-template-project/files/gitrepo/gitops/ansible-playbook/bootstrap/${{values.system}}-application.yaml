@@ -3,6 +3,11 @@ kind: Application
 metadata:
   name: ${{ values.system }}
   namespace: openshift-gitops  # The namespace where ArgoCD is installed
+  annotations:
+    backstage.io/kubernetes-id: ${{ values.system }}
+    backstage.io/kubernetes-namespace: openshift-gitops
+  labels:
+    backstage-name: ${{ values.system }}-bootstrap
 spec:
   project: default  # ArgoCD project; can be customized
   source:

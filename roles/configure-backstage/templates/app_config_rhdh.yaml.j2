@@ -11,6 +11,10 @@ data:
         port: "8000"
       devSpaces:
         baseUrl: https://devspaces.{{ OCP_BASE }}
+      rhaap:
+        baseUrl: 'https://{{ aap_hostname }}'
+        token: '{{ aap_token }}'
+        checkSSL: true
       
     app:
       title: Red Hat Developer Hub

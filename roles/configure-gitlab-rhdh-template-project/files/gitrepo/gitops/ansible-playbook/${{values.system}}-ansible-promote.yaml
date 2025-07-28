@@ -1,0 +1,51 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: ${{values.system}}-ansible-promote
+  namespace: ${{values.system}}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  description: |
+    A Tekton Task to run promote a playbook git repo to production
+  params:
+    - default: .
+      description: |
+        The directory or file containing a molecule folder.
+        Example: `roles/webserver`.
+      name: target
+      type: string
+    - name: PROJECT_NAME
+      type: string
+      default: ${{values.system}}
+    - name: refspec
+      type: string
+  steps:
+    - name: update-refspec-by-name
+      image: registry.redhat.io/ansible-automation-platform-25/ee-supported-rhel9
+      script: |
+        #!/bin/sh
+        set -e
+
+        echo "Fetching Project ID for project name: $(params.PROJECT_NAME)"
+
+        echo "Fetching refspec: $(params.refspec)"
+
+        export AAP_PASSWORD=$(oc get secret aap-admin-password -n aap -o jsonpath='{.data.password}' | base64 --decode)
+
+        export AAP_HOSTNAME=$(oc get secret aaptoken -n aap -o jsonpath='{.data.hostname}' | base64 --decode)
+
+        localrefspec=$(params.refspec)
+
+        export TAG=$(basename $localrefspec)
+
+        echo "New tag is $TAG"
+
+
+        cd $(workspaces.input.path)
+
+        ansible-playbook ansible/promote_playbook.yaml
+      
+  workspaces:
+    - description: The git repo will be cloned onto the volume backing this Workspace.
+      name: input

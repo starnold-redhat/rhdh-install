@@ -5,6 +5,10 @@ metadata:
   namespace: ${{ values.system }}
   annotations:
     argocd.argoproj.io/sync-wave: "3"
+    janus-idp.io/tekton: ${{ values.system }}
+  labels:
+    app.kubernetes.io/instance: ${{ values.system }}
+    playbook: ${{ values.system }}
 spec:
   tasks:
     - name: git-clone
@@ -56,5 +60,102 @@ spec:
       taskRef:
         kind: Task
         name: ${{ values.system }}-ansible-lint
+    - name: ansible-molecule
+      params:
+        - name: target
+          value: roles/webserver
+      runAfter:
+        - ansible-lint
+      taskRef:
+        kind: Task
+        name: ${{ values.system }}-ansible-molecule
+      workspaces:
+        - name: input
+          workspace: src
+    - name: ansible-project-refresh
+      params:
+        - name: target
+          value: .
+      runAfter:
+        - ansible-molecule
+      taskRef:
+        kind: Task
+        name: ${{ values.system }}-ansible-project-refresh
+      workspaces:
+        - name: input
+          workspace: src
+  workspaces:
+    - name: src
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: ${{ values.system }}-production-pipeline
+  namespace: ${{ values.system }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+    janus-idp.io/tekton: ${{ values.system }}
+  labels:
+    app.kubernetes.io/instance: ${{ values.system }}
+    playbook: ${{ values.system }}
+spec:
+  params:
+    - name: refspec
+      description: The Git refspec to build
+  tasks:
+    - name: git-clone
+      params:
+        - name: url
+          value: 'https://gitlab-gitlab.OCP_BASE/development/${{ values.system }}.git'
+        - name: revision
+          value: ''
+        - name: refspec
+          value: ''
+        - name: submodules
+          value: 'true'
+        - name: depth
+          value: '1'
+        - name: sslVerify
+          value: 'true'
+        - name: crtFileName
+          value: ca-bundle.crt
+        - name: subdirectory
+          value: ''
+        - name: sparseCheckoutDirectories
+          value: ''
+        - name: deleteExisting
+          value: 'true'
+        - name: httpProxy
+          value: ''
+        - name: httpsProxy
+          value: ''
+        - name: noProxy
+          value: ''
+        - name: verbose
+          value: 'true'
+        - name: gitInitImage
+          value: 'registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:dd5c8d08d52e304a542921634ebe6b5ff3d63c5f68f6d644e88417859b173ec8'
+        - name: userHome
+          value: /home/git
+      taskRef:
+        kind: Task
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: src
+    - name: ansible-promote-to-prod
+      params:
+        - name: target
+          value: .
+        - name: refspec
+          value: $(params.refspec)
+      runAfter:
+        - git-clone
+      taskRef:
+        kind: Task
+        name: ${{ values.system }}-ansible-promote
+      workspaces:
+        - name: input
+          workspace: src
   workspaces:
     - name: src

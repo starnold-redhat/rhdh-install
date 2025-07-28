@@ -43,3 +43,49 @@ spec:
         - name: WEBHOOK_URL
           value: "http://${{values.system}}-el-event-listener.OCP_BASE"
       restartPolicy: Never
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-gitlab-production-webhook-${{values.system}}
+  namespace: gitlab
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  template:
+    spec:
+      containers:
+      - name: create-production-webhook
+        image: curlimages/curl:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          
+          # GitLab API Endpoint
+          GITLAB_API="https://gitlab-gitlab.OCP_BASE/api/v4/projects/${GITLAB_PROJECT_ID}/hooks"
+          
+          # Payload for webhook creation
+          PAYLOAD='{
+            "url": "'$WEBHOOK_URL'",
+            "tag_push_events": true,
+            "push_events": false
+          }'
+
+          # Make API request to create the webhook
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+            -d "$PAYLOAD" \
+            "$GITLAB_API"
+        env:
+        - name: GITLAB_PROJECT_ID
+          value: "${{values.gitlab_project_id}}" # Replace with your project ID
+        - name: GITLAB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: root-user-personal-token
+              key: token
+        - name: WEBHOOK_URL
+          value: "http://${{values.system}}-production-el-event-listener.OCP_BASE"
+      restartPolicy: Never

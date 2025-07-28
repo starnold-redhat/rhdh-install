@@ -1,0 +1,184 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${{values.system}}-aap-project-creation-cm 
+  namespace: aap
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  inventory.ini: |
+    [local]
+    localhost ansible_connection=local
+  playbook.yml: |
+      ---
+      - name: Ansible Playbook to create ansible projects, inventories, hosts and templates
+        hosts: localhost
+        connection: local
+        gather_facts: true
+        vars:
+            aap_hostname: "{{ lookup('env', 'AAP_HOSTNAME') }}"
+            aap_username: "admin"
+            aap_password: "{{ lookup('env', 'AAP_PASSWORD') }}"
+            aap_validate_certs: "false"
+
+        tasks:
+            - name: Add production project
+              ansible.controller.project:
+                name: "${{values.system}}-prod"
+                description: "${{values.system}} production project"
+                organization: "Default"
+                state: present
+                scm_type: git
+                controller_username: "{{ aap_username }}"
+                controller_password: "{{ aap_password }}"
+                controller_host: "{{ aap_hostname }}"
+                scm_url: "https://gitlab-gitlab.OCP_BASE/development/${{values.system}}.git"
+                scm_branch: "main"
+              register: prod_project_result
+            
+            - name: Add development project
+              ansible.controller.project:
+                name: "${{values.system}}-dev"
+                description: "${{values.system}} development project"
+                organization: "Default"
+                state: present
+                scm_type: git
+                controller_username: "{{ aap_username }}"
+                controller_password: "{{ aap_password }}"
+                controller_host: "{{ aap_hostname }}"
+                scm_url: "https://gitlab-gitlab.OCP_BASE/development/${{values.system}}.git"
+                scm_branch: "main"
+              register: dev_project_result
+
+            - name: Create ${{values.system}}-inventory
+              ansible.controller.inventory:
+                controller_host: "{{ aap_hostname }}"
+                controller_username: "{{ aap_username }}"
+                controller_password: "{{ aap_password }}"
+                validate_certs: "{{ aap_validate_certs }}"
+                name: "${{values.system}}-inventory"
+                description: "Inventory for ${{values.system}} project"
+                organization: "Default"
+                state: present
+              register: inventory_result
+
+            - name: Add test host to ${{values.system}}-inventory
+              ansible.controller.host:
+                controller_host: "{{ aap_hostname }}"
+                controller_username: "{{ aap_username }}"
+                controller_password: "{{ aap_password }}"
+                validate_certs: "{{ aap_validate_certs }}"
+                name: "${{values.system}}-test-server"
+                description: "test server for ${{values.system}} projects"
+                inventory: "{{ inventory_result.id }}"
+                variables: |
+                  {
+                    "ansible_kubectl_pod": "${{values.system}}-test-server",
+                    "ansible_kubectl_namespace": "${{values.system}}",
+                    "ansible_connection": "kubectl",
+                    "ansible_remote_tmp": "/tmp/.ansible/tmp"
+                  }
+                enabled: true
+                state: present
+              register: host_result
+
+            - name: Create web server group
+              ansible.controller.group:
+                controller_host: "{{ aap_hostname }}"
+                controller_username: "{{ aap_username }}"
+                controller_password: "{{ aap_password }}"
+                validate_certs: "{{ aap_validate_certs }}"
+                name: "webservers"
+                description: "Web servers hosts group"
+                inventory: "${{values.system}}-inventory"
+                hosts:
+                  - ${{values.system}}-test-server
+                state: present
+              register: group_result
+
+            - name: Create job template for ${{values.system}} playbook
+              ansible.controller.job_template:
+                controller_host: "{{ aap_hostname }}"
+                controller_username: "{{ aap_username }}"
+                controller_password: "{{ aap_password }}"
+                validate_certs: "{{ aap_validate_certs }}"
+                name: "${{values.system}} Production Job Template"
+                description: "Run production ${{values.system}} playbook"
+                organization: "Default"
+                project: "${{values.system}}-prod"
+                playbook: "linux_playbook.yml"
+                inventory: "${{values.system}}-inventory"
+                job_type: "run"
+                instance_groups:
+                  - "container group"
+                verbosity: 0
+                limit: ""
+                job_tags: ""
+                skip_tags: ""
+                forks: 5
+                job_slice_count: 1
+                timeout: 1800
+                use_fact_cache: true
+                host_config_key: ""
+                ask_scm_branch_on_launch: false
+                ask_diff_mode_on_launch: false
+                ask_variables_on_launch: false
+                ask_limit_on_launch: false
+                ask_tags_on_launch: false
+                ask_skip_tags_on_launch: false
+                ask_job_type_on_launch: false
+                ask_verbosity_on_launch: false
+                ask_inventory_on_launch: false
+                ask_credential_on_launch: false
+                survey_enabled: false
+                become_enabled: false
+                diff_mode: false
+                allow_simultaneous: false
+                start_at_task: ""
+                scm_branch: ""
+                state: present
+              register: prod_job_template_result
+
+
+            - name: Create job template for development ${{values.system}} playbook
+              ansible.controller.job_template:
+                controller_host: "{{ aap_hostname }}"
+                controller_username: "{{ aap_username }}"
+                controller_password: "{{ aap_password }}"
+                validate_certs: "{{ aap_validate_certs }}"
+                name: "${{values.system}} Development Job Template"
+                description: "Run development ${{values.system}} playbook"
+                organization: "Default"
+                project: "${{values.system}}-dev"
+                playbook: "linux_playbook.yml"
+                inventory: "${{values.system}}-inventory"
+                job_type: "run"
+                instance_groups:
+                  - "container group"
+                verbosity: 0
+                limit: ""
+                job_tags: ""
+                skip_tags: ""
+                forks: 5
+                job_slice_count: 1
+                timeout: 1800
+                use_fact_cache: true
+                host_config_key: ""
+                ask_scm_branch_on_launch: false
+                ask_diff_mode_on_launch: false
+                ask_variables_on_launch: false
+                ask_limit_on_launch: false
+                ask_tags_on_launch: false
+                ask_skip_tags_on_launch: false
+                ask_job_type_on_launch: false
+                ask_verbosity_on_launch: false
+                ask_inventory_on_launch: false
+                ask_credential_on_launch: false
+                survey_enabled: false
+                become_enabled: false
+                diff_mode: false
+                allow_simultaneous: false
+                start_at_task: ""
+                scm_branch: ""
+                state: present
+              register: dev_job_template_result

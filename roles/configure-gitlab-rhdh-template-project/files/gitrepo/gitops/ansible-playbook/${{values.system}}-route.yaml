@@ -9,12 +9,32 @@ metadata:
     app.kubernetes.io/managed-by: EventListener
     app.kubernetes.io/part-of: Triggers
     eventlistener: ${{ values.system }}-event-listener
-  
 spec:
   host: ${{values.system}}-el-event-listener.OCP_BASE
   to:
     kind: Service
     name: el-${{ values.system }}-event-listener
+    weight: 100
+  port:
+    targetPort: http-listener
+  wildcardPolicy: None
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: ${{ values.system }}-production-el-event-listener
+  namespace: ${{ values.system }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  labels:
+    app.kubernetes.io/managed-by: EventListener
+    app.kubernetes.io/part-of: Triggers
+    eventlistener: ${{ values.system }}-production-event-listener
+spec:
+  host: ${{values.system}}-production-el-event-listener.OCP_BASE
+  to:
+    kind: Service
+    name: el-${{ values.system }}-production-event-listener
     weight: 100
   port:
     targetPort: http-listener

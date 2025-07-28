@@ -1,0 +1,28 @@
+# Role in the target namespace (where the secret exists)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: secret-reader
+  namespace: aap # The namespace containing the secret
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list"]
+  # Optional: restrict to specific secret names
+  # resourceNames: ["my-secret"]
+
+---
+# RoleBinding in the target namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ${{values.system}}-secret-reader-binding
+  namespace: aap # Same namespace as the Role
+subjects:
+- kind: ServiceAccount
+  name: pipeline
+  namespace: ${{values.system}}  # The namespace where the service account exists
+roleRef:
+  kind: Role
+  name: secret-reader
+  apiGroup: rbac.authorization.k8s.io

@@ -141,13 +141,9 @@
   ansible.builtin.set_fact:
     b64token: '{{ aap_token.json.token | b64encode }}'
 
-- name: Set hostname
-  ansible.builtin.set_fact:
-    aaphostname: 'controller-aap.{{ OCP_BASE }}'
-
 - name: Set b64encodedhostname
   ansible.builtin.set_fact:
-    b64hostname: '{{ aaphostname | b64encode}}'
+    b64hostname: '{{ aap_hostname | b64encode }}'
 
 - name: Install aap token secrets
   kubernetes.core.k8s:

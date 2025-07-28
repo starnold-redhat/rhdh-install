@@ -25,8 +25,12 @@ metadata:
     - collection
     {%- endif %}
   annotations:
-    backstage.io/techdocs-ref: dir:.
     gitlab.com/project-slug: ${{ values.repoUrl | projectSlug }}
+    argocd/app-selector: backstage-name=${{ values.system }}-bootstrap
+    backstage.io/kubernetes-id: ${{ values.system }}
+    backstage.io/kubernetes-label-selector: 'playbook=${{ values.system }}'
+    janus-idp.io/tekton: ${{ values.system }}
+    backstage.io/techdocs-ref: dir:.
   {%- if values.devSpacesBaseUrl %}
   links:
     - url: ${{ values.devSpacesBaseUrl }}

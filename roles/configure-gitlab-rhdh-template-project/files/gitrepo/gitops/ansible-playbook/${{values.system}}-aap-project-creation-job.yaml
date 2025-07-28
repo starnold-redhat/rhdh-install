@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${{values.system}}-aap-project-creation-job 
+  namespace: aap
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  template:
+    metadata:
+      labels:
+        app: aap-project-creator
+    spec:
+      containers:
+        - name: run-script
+          image: registry.redhat.io/ansible-automation-platform-25/ee-supported-rhel9:latest
+          command: ["ansible-playbook"]
+          args:
+            - "-i"
+            - "/scripts/inventory.ini"
+            - "/scripts/playbook.yml"
+          volumeMounts:
+            - name: script-volume
+              mountPath: /scripts
+          env:
+          - name: AAP_HOSTNAME
+            valueFrom:
+              secretKeyRef:
+                name: aaptoken
+                key: hostname
+          - name: AAP_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: aap-admin-password
+                key: password
+      volumes:
+      - name: script-volume
+        configMap:
+          name: ${{values.system}}-aap-project-creation-cm 
+          defaultMode: 0777
+      restartPolicy: Never
+  backoffLimit: 3

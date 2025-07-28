@@ -19,6 +19,6 @@
     - name: Assert that the message is present in the response
       ansible.builtin.assert:
         that:
-          - "'Welcome to the Web Server deployed and tested with Molecule'"
+          - "'Welcome to the Web Server deployed and tested with Molecule' in http_response.content"
         fail_msg: "Expected message not found in HTTP response"
         success_msg: "Expected message found successfully"

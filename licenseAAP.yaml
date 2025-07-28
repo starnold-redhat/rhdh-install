@@ -14,5 +14,5 @@
         authorization_grant_type: "password"
   roles:
     - install-aap-controller
-    - {role: infra.aap_configuration.controller_license, ignore_errors: yes }
- #   - configure-aap-controller
+    - {role: infra.aap_configuration.controller_license, ignore_errors: true }
+    - configure-aap-controller

@@ -1,8 +1,17 @@
 resources:
 - ${{values.system}}-ansible-lint.yaml
+- ${{values.system}}-ansible-molecule.yaml
 - ${{values.system}}-el.yaml
 - ${{values.system}}-pipeline.yaml
 - ${{values.system}}-route.yaml
 - ${{values.system}}-triggertemplate.yaml
+- ${{values.system}}-trigger-binding.yaml
 - ${{values.system}}-create-webhook-job.yaml
-- ${{values.system}}-aap-project.yaml
+- ${{values.system}}-aap-project-creation-cm.yaml
+- ${{values.system}}-aap-project-creation-job.yaml
+- ${{values.system}}-aap-role-bindings.yaml
+- ${{values.system}}-pipeline-edit-rolebinding.yaml
+- ${{values.system}}-scc-rolebinding.yaml
+- ${{values.system}}-test-deployment
+- ${{values.system}}-ansible-promote
+

@@ -15,3 +15,22 @@ spec:
           ref: gitlab-push
       template:
         ref: ${{ values.system }}-trigger-template-new-pipeline
+---
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: ${{ values.system }}-production-event-listener
+  namespace: ${{ values.system }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  namespaceSelector: {}
+  resources: {}
+  serviceAccountName: pipeline
+  triggers:
+    - bindings:
+        - kind: TriggerBinding
+          ref: gitlab-tag
+      template:
+        ref: ${{ values.system }}-production-trigger-template-new-pipeline

@@ -5,6 +5,7 @@ metadata:
   namespace: ${{values.system}}
   labels:
     app: "molecule-test-container"
+    playbook: ${{values.system}}
 spec:
   containers:
     - name: molecule
@@ -34,6 +35,8 @@ kind: Service
 metadata:
   name: "{{ item.name }}"
   namespace: ${{values.system}}
+  labels:
+    playbook: ${{values.system}}
 spec:
   selector:
     app: molecule-test-container
@@ -48,6 +51,8 @@ apiVersion: route.openshift.io/v1
 metadata:
   name: {{ item.name }}
   namespace: ${{values.system}} 
+  labels:
+    playbook: ${{values.system}}
 spec:
   
   to:
@@ -56,4 +61,7 @@ spec:
     weight: 100
   port:
     targetPort: 80
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Allow
   wildcardPolicy: None

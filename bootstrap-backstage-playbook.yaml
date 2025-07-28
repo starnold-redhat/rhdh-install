@@ -14,14 +14,14 @@
         authorization_grant_type: "password"
 
   roles:
-    - name: install-operators 
+    - name: install-operators
     - name: install-gitlab
     - name: configure-gitlab
     - name: configure-gitlab-rhdh-template-project
     - name: install-sso
     - name: install-aap-rhdh-plugins
+    - name: install-minio
     - name: configure-devworkspaces
     - name: install-aap-controller
-    - {role: infra.aap_configuration.controller_license, ignore_errors: yes }
     - name: configure-aap-controller
-    - name: configure-backstage    
+    - name: configure-backstage

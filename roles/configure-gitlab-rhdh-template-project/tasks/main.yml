@@ -104,9 +104,9 @@
     regexp: 'OCP_BASE'
     replace: '{{ OCP_BASE }}'
 
-- name: Replace OCP_BASE in aap template
+- name: Replace OCP_BASE in project creation cm
   ansible.builtin.replace:
-    path: software-templates/gitops/ansible-playbook/${{  '{{' }}values.system{{  '}}' }}-aap-project.yaml
+    path: software-templates/gitops/ansible-playbook/${{  '{{' }}values.system{{  '}}' }}-aap-project-creation-cm.yaml
     regexp: 'OCP_BASE'
     replace: '{{ OCP_BASE }}'
 

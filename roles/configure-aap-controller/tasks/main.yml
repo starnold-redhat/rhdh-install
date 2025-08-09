@@ -7,139 +7,133 @@
     kind: Secret
     namespace: aap
     name: aaptoken
+################################################
+# Configure RBAC for pod exec permissions
+################################################
+- name: Install RBAC configuration for AAP pod exec permissions
+  kubernetes.core.k8s:
+    state: present
+    src: aap-exec-rbac.yaml
 
-# delete the aap token in aap
-- name: Get any existing tokens
-  ansible.builtin.uri:
-    url: https://{{ aap_hostname }}/api/controller/v2/tokens
-    method: GET
-    user: "admin"
-    password: "{{ aap_password }}"
-    force_basic_auth: true
-    validate_certs: false
-    status_code: 200
-  register: api_tokens
+################################################
+# Configure SCC permissions for privileged pod exec
+################################################
+- name: Grant privileged SCC to AAP service account for cross-namespace pod exec
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: aap-privileged-scc-binding
+      subjects:
+      - kind: ServiceAccount
+        name: default
+        namespace: aap
+      roleRef:
+        kind: ClusterRole
+        name: system:openshift:scc:privileged
+        apiGroup: rbac.authorization.k8s.io
 
-- name: Delete the token
-  ansible.builtin.uri:
-    url: https://{{ aap_hostname }}/api/controller/v2/tokens/{{ item.id }}/
-    method: DELETE
-    user: "admin"
-    password: "{{ aap_password }}"
-    force_basic_auth: true
-    validate_certs: false
-    status_code: 204
-  loop: "{{ api_tokens.json.results }}"
-  when: item.summary_fields.application.name == "rhdh"
-  ignore_errors: true
-
-# Get the aap application
-- name: Get rhdh applications
-  ansible.builtin.uri:
-    url: https://{{ aap_hostname }}/api/controller/v2/applications
-    method: GET
-    user: "admin"
-    password: "{{ aap_password }}"
-    force_basic_auth: true
-    validate_certs: false
-    status_code: 200
-  register: api_applications
-
-- name: Delete the rhdh application
-  ansible.builtin.uri:
-    url: https://{{ aap_hostname }}/api/controller/v2/applications/{{ item.id }}/
-    method: DELETE
-    user: "admin"
-    password: "{{ aap_password }}"
-    force_basic_auth: true
-    validate_certs: false
-    status_code: 204
-  loop: "{{ api_applications.json.results }}"
-  when: item.name == "rhdh"
-  ignore_errors: true
-
- 
 ################################################
 # Now create stuff
 ################################################
 # create a new application if secret doesnt exist
-- name: Get the organization
-  ansible.builtin.uri:
-    url: https://{{ aap_hostname }}/api/controller/v2/organizations
-    method: GET
-    user: "admin"
-    password: "{{ aap_password }}"
-    force_basic_auth: true
-    validate_certs: false
-    status_code: 200
-  register: api_orgs
+- name: Create an application
+  ansible.controller.application:
+    name: "rhdh"
+    description: "Red Hat Developer Hub"
+    organization: "Default"
+    state: present
+    authorization_grant_type: password
+    client_type: public
 
+    controller_username: admin
+    controller_password: "{{ aap_password }}"
+    controller_host: "{{ aap_hostname }}"
 
-- name: Set the default organization
-  ansible.builtin.set_fact:
-    default_org: "{{ item }}"
-  with_items: "{{ api_orgs.json.results }}"
-  when: item.name == "Default"
+- name: Create a token
+  ansible.controller.token:
+    application: rhdh
+    description: "Red Hat Developer Hub token"
+    scope: "write"
+    controller_username: admin
+    controller_password: "{{ aap_password }}"
+    controller_host: "{{ aap_hostname }}"
+  register: aap_token_json
 
-- name: Debug default_org
-  ansible.builtin.debug:
-    var: default_org.id
-
-- name: Create rhdh application
-  ansible.builtin.uri:
-    url: https://{{ aap_hostname }}/api/controller/v2/applications/
-    method: POST
-    user: "admin"
-    password: "{{ aap_password }}"
-    force_basic_auth: true
-    validate_certs: false
-    body_format: json
-    headers:
-      Content-Type: "application/json"
-    body: |
-      {
-        "name": "rhdh",
-        "description": "Red Hat Developer Hub",
-        "organization": {{ default_org.id | int }},
-        "client_type": "public",
-        "authorization_grant_type": "password"
-      }
-    status_code: 201
-  register: api_applications
-
-- name: Debug result
-  ansible.builtin.debug:
-    var: api_applications
-
-# create a new token 
-- name: Create new token
-  ansible.builtin.uri:
-    url: https://{{ aap_hostname }}/api/controller/v2/applications/{{ api_applications.json.id }}/tokens/
-    method: POST
-    user: "admin"
-    password: "{{ aap_password }}"
-    force_basic_auth: true
-    validate_certs: false
-    body_format: json
-    headers:
-      Content-Type: "application/json"
-    body: |
-      {
-        "application": "rhdh",
-        "description": "Red Hat Developer Hub token",
-        "scope": "write"
-      }
-    status_code: 201
-  register: aap_token
+- name: Create container instance group
+  ansible.controller.instance_group:
+    controller_username: admin
+    controller_password: "{{ aap_password }}"
+    controller_host: "{{ aap_hostname }}"
+    name: 'container group'
+    is_container_group: true
+    pod_spec_override: |
+        apiVersion: v1
+        kind: Pod
+        metadata:
+          namespace: aap
+        spec:
+          serviceAccountName: default
+          automountServiceAccountToken: false
+          containers:
+            - image: >-
+                registry.redhat.io/ansible-automation-platform-25/ee-supported-rhel8@sha256:1cf3a9821cb6c4937ab3b0c465b04f83348c4cab390f3993da111c9747ffcd6a
+              name: worker
+              args:
+                - ansible-runner
+                - worker
+                - '--private-data-dir=/runner'
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 100Mi
+              volumeMounts:
+                - name: kube-api-access
+                  readOnly: true
+                  mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          volumes:
+            - name: kube-api-access
+              projected:
+                sources:
+                  - serviceAccountToken:
+                      expirationSeconds: 3607
+                      path: token
+                  - configMap:
+                      name: kube-root-ca.crt
+                      items:
+                        - key: ca.crt
+                          path: ca.crt
+                  - downwardAPI:
+                      items:
+                        - path: namespace
+                          fieldRef:
+                            apiVersion: v1
+                            fieldPath: metadata.namespace
+                  - configMap:
+                      name: openshift-service-ca.crt
+                      items:
+                        - key: service-ca.crt
+                          path: service-ca.crt
+                defaultMode: 420
 
 # create a secret using the token value
-- name: Debug result
+- name: Debug token
   ansible.builtin.debug:
-    var: aap_token
+    var: aap_token_json.ansible_facts.controller_token.token
+
+- name: Set aap_token
+  ansible.builtin.set_fact:
+    aap_token: aap_token_json.ansible_facts.controller_token.token
+
+- name: Debug hostname
+  ansible.builtin.debug:
+    var: aap_hostname
 
 - name: Set b64encoded token
   ansible.builtin.set_fact:
-    b64token: '{{ aap_token.json.token | b64encode }}'
+    b64token: '{{ aap_token_json.ansible_facts.controller_token.token | b64encode }}'
 
 - name: Set b64encodedhostname
   ansible.builtin.set_fact:

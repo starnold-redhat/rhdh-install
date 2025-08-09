@@ -1,0 +1,127 @@
+---
+# ClusterRole with read-only permissions for Backstage
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: backstage-read-only
+rules:
+# Core API resources
+- apiGroups: [""]
+  resources:
+    - pods
+    - services
+    - endpoints
+    - persistentvolumes
+    - persistentvolumeclaims
+    - configmaps
+    - secrets
+    - serviceaccounts
+    - nodes
+    - namespaces
+    - limitranges
+    - resourcequotas
+  verbs: ["get", "list", "watch"]
+
+# Apps API group
+- apiGroups: ["apps"]
+  resources:
+    - deployments
+    - replicasets
+    - statefulsets
+    - daemonsets
+  verbs: ["get", "list", "watch"]
+
+# Extensions API group
+- apiGroups: ["extensions"]
+  resources:
+    - deployments
+    - ingresses
+  verbs: ["get", "list", "watch"]
+
+# Networking API group
+- apiGroups: ["networking.k8s.io"]
+  resources:
+    - ingresses
+    - networkpolicies
+  verbs: ["get", "list", "watch"]
+
+# Batch API group
+- apiGroups: ["batch"]
+  resources:
+    - jobs
+    - cronjobs
+  verbs: ["get", "list", "watch"]
+
+# Autoscaling API group
+- apiGroups: ["autoscaling"]
+  resources:
+    - horizontalpodautoscalers
+  verbs: ["get", "list", "watch"]
+
+# RBAC API group
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources:
+    - roles
+    - rolebindings
+    - clusterroles
+    - clusterrolebindings
+  verbs: ["get", "list", "watch"]
+
+# OpenShift specific resources
+- apiGroups: ["route.openshift.io"]
+  resources:
+    - routes
+  verbs: ["get", "list", "watch"]
+
+- apiGroups: ["image.openshift.io"]
+  resources:
+    - imagestreams
+  verbs: ["get", "list", "watch"]
+
+- apiGroups: ["build.openshift.io"]
+  resources:
+    - builds
+    - buildconfigs
+  verbs: ["get", "list", "watch"]
+
+# Tekton resources (as specified in the current config)
+- apiGroups: ["tekton.dev"]
+  resources:
+    - pipelines
+    - pipelineruns
+    - tasks
+    - taskruns
+  verbs: ["get", "list", "watch"]
+
+# Custom resources that might be useful for Backstage
+- apiGroups: ["argoproj.io"]
+  resources:
+    - applications
+  verbs: ["get", "list", "watch"]
+
+# Metrics
+- apiGroups: ["metrics.k8s.io"]
+  resources:
+    - pods
+    - nodes
+  verbs: ["get", "list"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rhdhaccess
+  namespace: backstage
+---
+# ClusterRoleBinding to bind the ClusterRole to the service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: backstage-read-only-binding
+subjects:
+- kind: ServiceAccount
+  name: rhdhaccess
+  namespace: backstage
+roleRef:
+  kind: ClusterRole
+  name: backstage-read-only
+  apiGroup: rbac.authorization.k8s.io 

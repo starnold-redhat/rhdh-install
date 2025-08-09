@@ -110,6 +110,9 @@ data:
           skipTLSVerify: true
         type: config
       customResources:
+      - group: 'tekton.dev'
+        apiVersion: 'v1beta1'
+        plural: 'pipelines'
       - apiVersion: v1beta1
         group: tekton.dev
         plural: pipelineruns

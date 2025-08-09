@@ -43,15 +43,25 @@
     wait_timeout: 300
   register: gitops_secret
 
-- name: Setup k8s service account for rhdh access
-  ansible.builtin.shell: |
-    oc create sa rhdhaccess -n backstage
-    oc adm policy add-cluster-role-to-user cluster-admin -z rhdhaccess
-  
-- name: Setup k8s service account for rhdh access
+- name: Create backstage namespace if it doesn't exist
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      api_version: v1
+      kind: Namespace
+      metadata:
+        name: backstage
+
+- name: Install RBAC configuration for Backstage
+  kubernetes.core.k8s:
+    state: present
+    src: backstage-rbac.yaml
+
+- name: Generate service account token for RHDH access
   ansible.builtin.shell: |
     oc create token rhdhaccess -n backstage --duration=$((365*24))h
   register: rhdhaccess_token_output
+  changed_when: true
 
 - name: Set k8s service account token for rhdh access
   ansible.builtin.set_fact:

@@ -1,0 +1,19 @@
+- name: Refresh Ansible Project Playbook
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    aap_hostname: "{{ lookup('env', 'AAP_HOSTNAME') }}"
+    aap_username: "admin"
+    aap_password: "{{ lookup('env', 'AAP_PASSWORD') }}"
+    refspec: "{{ lookup('env', 'REFSPEC') }}"
+    aap_validate_certs: "false"
+
+
+  tasks:
+    - name: refresh project
+      ansible.controller.project_update:
+        name: "${{values.system}}-dev"
+        controller_username: "{{ aap_username }}"
+        controller_password: "{{ aap_password }}"
+        controller_host: "{{ aap_hostname }}"

@@ -31,9 +31,12 @@
   set_fact:
     aap_password: '{{ r_aap_password.resources[0].data.password | b64decode }}'
 
+
 - name: Attach a subscription using the manifest file
   ansible.controller.license:
     manifest: "{{ playbook_dir }}/manifest_aap.zip"
     controller_username: admin
-    controller_password: "{{ r_aap_password.resources[0].data.password }}"
+    controller_password: "{{ aap_password }}"
     controller_host: "{{ aap_hostname }}"
+  retries: 7
+  delay: 15

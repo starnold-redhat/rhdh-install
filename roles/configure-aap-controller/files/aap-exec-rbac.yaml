@@ -1,0 +1,104 @@
+---
+# ClusterRole with pod exec permissions for AAP
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: aap-pod-exec
+rules:
+# Core permissions needed for pod exec and resource access
+- apiGroups: [""]
+  resources:
+    - pods
+    - services
+    - endpoints
+    - configmaps
+    - secrets
+    - serviceaccounts
+    - nodes
+    - namespaces
+  verbs: ["get", "list", "watch"]
+
+# Pod exec and attach permissions
+- apiGroups: [""]
+  resources:
+    - pods/exec
+    - pods/attach
+  verbs: ["create"]
+
+# Pod logs and status
+- apiGroups: [""]
+  resources:
+    - pods/log
+    - pods/status
+  verbs: ["get", "list"]
+
+# Apps API group for deployments, replicasets, etc.
+- apiGroups: ["apps"]
+  resources:
+    - deployments
+    - replicasets
+    - statefulsets
+    - daemonsets
+  verbs: ["get", "list", "watch"]
+
+# Extensions API group
+- apiGroups: ["extensions"]
+  resources:
+    - deployments
+    - ingresses
+  verbs: ["get", "list", "watch"]
+
+# Networking API group
+- apiGroups: ["networking.k8s.io"]
+  resources:
+    - ingresses
+    - networkpolicies
+  verbs: ["get", "list", "watch"]
+
+# Batch API group for jobs
+- apiGroups: ["batch"]
+  resources:
+    - jobs
+    - cronjobs
+  verbs: ["get", "list", "watch"]
+
+# RBAC permissions for service account management
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources:
+    - roles
+    - rolebindings
+    - clusterroles
+    - clusterrolebindings
+  verbs: ["get", "list", "watch"]
+
+# OpenShift specific resources
+- apiGroups: ["route.openshift.io"]
+  resources:
+    - routes
+  verbs: ["get", "list", "watch"]
+
+- apiGroups: ["image.openshift.io"]
+  resources:
+    - imagestreams
+  verbs: ["get", "list", "watch"]
+
+- apiGroups: ["build.openshift.io"]
+  resources:
+    - builds
+    - buildconfigs
+  verbs: ["get", "list", "watch"]
+
+---
+# ClusterRoleBinding to bind the ClusterRole to the default service account in aap namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: aap-pod-exec-binding
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: aap
+roleRef:
+  kind: ClusterRole
+  name: aap-pod-exec
+  apiGroup: rbac.authorization.k8s.io 
